@@ -22,27 +22,30 @@ You first need to download and convert the compressed Recalbox image into a comp
 
 recalbox-rpi4_64.img.xz -> recalbox-rpi4_64.tar.xz
 
+PINN expects the firmware files to be directly in the root of the partition, not nested within a directory.  Also, any .sh or other files that need executable status should have their permissions changed, and mac-specific attributes should be excluded.
+
 Once you have the image, here's how to mount it on Mac and create the tar archive:
 
 ```bash
 % hdiutil attach ~/Downloads/recalbox-rpi4_64.img 
 /dev/disk5         	FDisk_partition_scheme         	
 /dev/disk5s1       	Windows_FAT_32                 	/Volumes/RECALBOX
+# TODO: mount
 % cd /Volumes/RECALBOX
-% sudo gtar -cJf ~/recalbox_boot.tar.xz .
-% cd ~
+% chmod +x ./boot/linux
+% chmod +x ./pre-upgrade.sh
+% chmod +x ./start4.elf
+% chmod +x ./start4x.elf
+% tar --no-xattrs -cJpf ../RECALBOX.tar.xz .
+% cd ..
 % sudo umount /Volumes/RECALBOX
 % hdiutil detach /dev/disk5  # Adjust if your device is different
 ```
+partition_setup.sh was not required.
 
-tar --no-xattrs -cJpf ~/archive.tar.xz .
+Be sure to fill the SD card with dummy "project" partitiosn so that you can add other OS using "replace" later without re-doing the parition scheme.
 
-tar -xpJf archive.tar.xz
-
-
-Make sure to remove mac-specific permissions metadata, but also that scripts have executable permissions.
-
-partition_setup.sh was not required
+Sound needs to be configured for HDMI.
 
 ## MAME
 

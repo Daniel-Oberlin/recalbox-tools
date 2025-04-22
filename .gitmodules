@@ -1,0 +1,3 @@
+[submodule "amiga/whdload4uae4arm/amiga68ktools"]
+	path = amiga/whdload4uae4arm/amiga68ktools
+	url = https://github.com/jotd666/amiga68ktools

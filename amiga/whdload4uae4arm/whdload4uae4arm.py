@@ -36,6 +36,18 @@ def run_scan_slaves():
     ], env=env, check=True)
 
 def generate_uae_file(hidden_name, dest_base, is_aga):
+
+    dest_dir = os.path.join(dest_base, hidden_name)
+    system_base_dir = os.path.join(BASE_DIR, "system_base")
+    if os.path.exists(system_base_dir):
+        for item in os.listdir(system_base_dir):
+            s = os.path.join(system_base_dir, item)
+            d = os.path.join(dest_dir, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                shutil.copy2(s, d)
+
     game_dir = os.path.join(dest_base, hidden_name)
     visible_name = hidden_name.lstrip(".")
     out_path = os.path.join(dest_base, f"{visible_name}.uae")
@@ -46,7 +58,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga):
         "cpu_type=68000" if not is_aga else "cpu_type=68020",
         "chipset=ecs" if not is_aga else "chipset=aga",
         "chipmem_size=2" if is_aga else "chipmem_size=2",
-        "fastmem_size=32" if is_aga else "fastmem_size=8"
+        "fastmem_size=8" if is_aga else "fastmem_size=8"
     ]
     with open(out_path, "w") as f:
         f.write("\n".join(lines))

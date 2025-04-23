@@ -1,0 +1,7 @@
+kickstart_rom_file=/recalbox/share/bios/kick40068.A1200
+chipmem_size=4
+fastmem_size=8
+cpu_type=68020
+chipset=aga
+filesystem2=rw,DH0:SuperGame:/recalbox/share/roms/amiga1200/.Super Game/,0
+boot1=dh0

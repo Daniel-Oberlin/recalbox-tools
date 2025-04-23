@@ -1,6 +1,6 @@
 # Recalbox Tools
 
-I've been working on getting Recalbox running on my PI4, running as a PINN bootable OS.  I have a special interest in MAME, Amiga, and C64 emulation.  This README is a documentation of my notes, and the repository includes any useful data or tools that I have set up along the way.
+I've been working on getting Recalbox running on my Pi4, running as a PINN bootable OS.  I have a special interest in MAME, Amiga, and C64 emulation.  This README is a documentation of my notes, and the repository includes any useful data or tools that I have set up along the way.
 
 ## Recalbox
 
@@ -10,7 +10,9 @@ Recalbox has a number of easy, well documented ways to work with roms and other 
 - **Network Share**: Look for "RECALBOX" on your network, you can access the share directory using this
 - **Web**: There is a web interface that lets you do a lot of things
 
-It's fun to customize the music.
+It's fun to customize the background music.  Here are some music sources:
+- https://modarchive.org/index.php
+- https://downloads.khinsider.com/
 
 ## PINN
 
@@ -41,6 +43,9 @@ Once you have the image, here's how to mount it on Mac and create the tar archiv
 % sudo umount /Volumes/RECALBOX
 % hdiutil detach /dev/disk5  # Adjust if your device is different
 ```
+
+**TODO:** run through the above, make sure it works.  Also, why set permissions if they never existed in FAT32?
+
 partition_setup.sh was not required.
 
 Be sure to fill the SD card with dummy "project" partitiosn so that you can add other OS using "replace" later without re-doing the parition scheme.
@@ -57,36 +62,21 @@ Artwork placement...
 
 ## Amiga
 
+Strangely, the Amiga kernal ROMs are placed at the root of the /roms directory, not in /roms/amiga600 or in /roms/amiga1200 where I would expect them.  Also, different emulators expect the same ROMs to have different names, so they end up being duplicated.  The Recalbox BIOS checker checks for the names that are expected for uae4arm.  
+
+**Amiberry**
+
+Amiberry has a really cool feature where it can accept WHDLoad games directly in lha archive format.  When you select a game at runtime, it drops the lha archive into a special Workbench environment in the filesystem.  When Workbench runs, it uses lha to unpack the archive into a temporary directory and then launches it with WHDLoad.
+
+Unfortunately, I 
+
+Roms are expected as:
+/roms/...
+
+**aue4arm**
+
   - Use this: "mount -o remount,rw /" to make the whole filesystem writeable.
 
+ROM names and locations for Amiberry and uae4arm
+
 ## C64
-
-## License
-
-TBD
-
-
-## Scraps
-Specify the license for the project.
-
-Steps to install and set up the project.
-
-- **Feature 1**: Brief description of the feature.
-- **Feature 2**: Brief description of the feature.
-- **Feature 3**: Brief description of the feature.
-- **To-Do**: List of tasks or improvements.
-  - Sub-task 1
-  - Sub-task 2
-
-
-```python
-# This is a Python code block
-def hello_world():
-    print("Hello, world!")
-```
-
-```bash
-# This is a shell code block
-echo "Hello, world!"
-ls -la
-```

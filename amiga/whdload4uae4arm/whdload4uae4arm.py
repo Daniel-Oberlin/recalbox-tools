@@ -68,10 +68,11 @@ def process_database():
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
             dir_name = row['path']
+            game_name = os.path.basename(os.path.dirname(dir_name))
             flags = row['flags'].split(',')
             is_aga = 'ReqAGA' in flags
-
-            dir_name_only = os.path.basename(dir_name)
+            if "AGA" in game_name.upper():
+                is_aga = True
             src = os.path.join(EXPAND_DIR, os.path.dirname(dir_name))
             if not os.path.exists(src):
                 print(f"[WARN] Skipping missing path: {src}")

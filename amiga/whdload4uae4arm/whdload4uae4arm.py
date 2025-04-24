@@ -52,7 +52,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga):
     visible_name = hidden_name.lstrip(".")
     out_path = os.path.join(dest_base, f"{visible_name}.uae")
     lines = [
-        f"filesystem2=rw,DH0:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
+        f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
         "boot1=dh0",
         "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200" if is_aga else "kickstart_rom_file=/recalbox/share/bios/kick40063.A600",
         "cpu_type=68000" if not is_aga else "cpu_type=68020",

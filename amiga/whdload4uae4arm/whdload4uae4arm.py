@@ -24,6 +24,7 @@ def clear_dir(path):
 def extract_lha_archives():
     """Extract LHA archives and map expanded directory names to archive filenames."""
     dir_to_archive_map = {}
+    expanded_dirs = []  # Collect all expanded directories
     total_archives = 0
     successful_expansions = 0
 
@@ -40,18 +41,20 @@ def extract_lha_archives():
             subprocess.run(["lha", "xq", archive_path], cwd=temp_dir, check=True)
 
             # Find the expanded directory inside the temporary directory
-            expanded_dirs = [d for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d))]
-            if len(expanded_dirs) != 1:
+            expanded_dirs_in_temp = [d for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d))]
+            if len(expanded_dirs_in_temp) != 1:
                 # Print an error and continue
-                print(f"[ERROR] Skipping {file}: Expected exactly one expanded directory, found {len(expanded_dirs)}")
+                print(f"[ERROR] Skipping {file}: Expected exactly one expanded directory, found {len(expanded_dirs_in_temp)}")
                 shutil.rmtree(temp_dir)  # Clean up the temporary directory
                 continue
 
-            expanded_dir_name = expanded_dirs[0]
+            expanded_dir_name = expanded_dirs_in_temp[0]
             expanded_dir_path = os.path.join(temp_dir, expanded_dir_name)
 
             # Map the expanded directory name to the archive filename
             dir_to_archive_map[expanded_dir_name] = file
+            expanded_dirs.append(expanded_dir_name)  # Track the expanded directory
+            print(f"{expanded_dir_name} -> {file}")
             successful_expansions += 1
 
             # Move the expanded directory up one level to the expand directory
@@ -64,7 +67,7 @@ def extract_lha_archives():
             shutil.rmtree(temp_dir)
 
     print(f"[INFO] Successfully expanded {successful_expansions} out of {total_archives} archives.")
-    return dir_to_archive_map
+    return dir_to_archive_map, expanded_dirs
 
 
 def run_scan_slaves():
@@ -127,8 +130,11 @@ def generate_uae_file(hidden_name, dest_base, is_aga, game_name=None):
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
 
-def process_database():
+def process_database(expanded_dirs):
+    """Process the database and print errors for missing entries."""
     game_name_map = load_game_names()
+    processed_dirs = set()  # Track directories processed from the database
+
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
@@ -159,6 +165,12 @@ def process_database():
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
             generate_uae_file(hidden_name, dest_base, is_aga, game_name_override)
+            processed_dirs.add(os.path.basename(os.path.dirname(dir_name)))  # Mark directory as processed
+
+    # Check for unprocessed directories
+    unprocessed_dirs = set(expanded_dirs) - processed_dirs
+    for unprocessed_dir in unprocessed_dirs:
+        print(f"[ERROR] No database entry found for expanded directory: {unprocessed_dir}")
 
 # --- Main Execution ---
 clear_dir(DB_DIR)
@@ -167,6 +179,6 @@ clear_dir(ROMS_DIR)
 os.makedirs(AMIGA600_DIR, exist_ok=True)
 os.makedirs(AMIGA1200_DIR, exist_ok=True)
 
-extract_lha_archives()
+dir_to_archive_map, expanded_dirs = extract_lha_archives()
 run_scan_slaves()
-process_database()
+process_database(expanded_dirs)

@@ -13,6 +13,7 @@ AMIGA600_DIR = os.path.join(ROMS_DIR, "amiga600")
 AMIGA1200_DIR = os.path.join(ROMS_DIR, "amiga1200")
 SCAN_SCRIPT = os.path.join(BASE_DIR, "amiga68ktools", "tools", "scan_slaves.py")
 DATABASE_FILE = os.path.join(DB_DIR, "database.csv")
+GAMES_CSV = os.path.join(LHA_DIR, "games.csv")
 
 # --- Helpers ---
 def clear_dir(path):
@@ -21,22 +22,85 @@ def clear_dir(path):
     os.makedirs(path)
 
 def extract_lha_archives():
+    """Extract LHA archives and map expanded directory names to archive filenames."""
+    dir_to_archive_map = {}
+    total_archives = 0
+    successful_expansions = 0
+
     for file in os.listdir(LHA_DIR):
         if file.lower().endswith(".lha"):
+            total_archives += 1
             archive_path = os.path.join(LHA_DIR, file)
-            subprocess.run(["lha", "x", archive_path], cwd=EXPAND_DIR)
+            temp_dir = os.path.join(EXPAND_DIR, f"temp_{os.path.splitext(file)[0]}")
+
+            # Create a temporary directory for extraction
+            os.makedirs(temp_dir, exist_ok=True)
+
+            # Extract the archive silently into the temporary directory
+            subprocess.run(["lha", "xq", archive_path], cwd=temp_dir, check=True)
+
+            # Find the expanded directory inside the temporary directory
+            expanded_dirs = [d for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d))]
+            if len(expanded_dirs) != 1:
+                # Print an error and continue
+                print(f"[ERROR] Skipping {file}: Expected exactly one expanded directory, found {len(expanded_dirs)}")
+                shutil.rmtree(temp_dir)  # Clean up the temporary directory
+                continue
+
+            expanded_dir_name = expanded_dirs[0]
+            expanded_dir_path = os.path.join(temp_dir, expanded_dir_name)
+
+            # Map the expanded directory name to the archive filename
+            dir_to_archive_map[expanded_dir_name] = file
+            successful_expansions += 1
+
+            # Move the expanded directory up one level to the expand directory
+            final_dest = os.path.join(EXPAND_DIR, expanded_dir_name)
+            if os.path.exists(final_dest):
+                shutil.rmtree(final_dest)
+            shutil.move(expanded_dir_path, final_dest)
+
+            # Clean up the temporary directory
+            shutil.rmtree(temp_dir)
+
+    print(f"[INFO] Successfully expanded {successful_expansions} out of {total_archives} archives.")
+    return dir_to_archive_map
+
 
 def run_scan_slaves():
+    """Run the scan_slaves script and count the number of successfully analyzed slave files."""
     env = os.environ.copy()
     env["PYTHONPATH"] = os.path.join(BASE_DIR, "amiga68ktools", "lib")
-    subprocess.run([
+    result = subprocess.run([
         "python3", SCAN_SCRIPT,
         EXPAND_DIR,
         DB_DIR
-    ], env=env, check=True)
+    ], env=env, capture_output=True, text=True, check=True)
 
-def generate_uae_file(hidden_name, dest_base, is_aga):
+    # Capture the output and errors
+    stdout = result.stdout
+    stderr = result.stderr
 
+    # Count the number of successfully analyzed slave files
+    analyzed_slaves = stdout.count(".slave") + stdout.count(".Slave")
+    print(f"[INFO] Successfully analyzed {analyzed_slaves} slave files.")
+
+    print(stderr.strip())
+
+def load_game_names():
+    """Load game names from games.csv if it exists."""
+    game_name_map = {}
+    if os.path.exists(GAMES_CSV):
+        with open(GAMES_CSV, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                archive_name = row.get("Archive Name", "").strip()
+                game_name = row.get("Game", "").strip()
+                if archive_name and game_name:
+                    game_name_map[archive_name] = game_name
+    return game_name_map
+
+def generate_uae_file(hidden_name, dest_base, is_aga, game_name=None):
     dest_dir = os.path.join(dest_base, hidden_name)
     system_base_dir = os.path.join(BASE_DIR, "system_base")
     if os.path.exists(system_base_dir):
@@ -49,7 +113,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga):
                 shutil.copy2(s, d)
 
     game_dir = os.path.join(dest_base, hidden_name)
-    visible_name = hidden_name.lstrip(".")
+    visible_name = game_name if game_name else hidden_name.lstrip(".")
     out_path = os.path.join(dest_base, f"{visible_name}.uae")
     lines = [
         f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
@@ -64,6 +128,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga):
         f.write("\n".join(lines))
 
 def process_database():
+    game_name_map = load_game_names()
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
@@ -78,6 +143,10 @@ def process_database():
                 print(f"[WARN] Skipping missing path: {src}")
                 continue
 
+            archive_name = os.path.basename(os.path.dirname(dir_name)) + ".lha"
+            print(f"[INFO] Processing {archive_name} -> {game_name}")
+            game_name_override = game_name_map.get(archive_name)
+
             hidden_name = f".{os.path.basename(os.path.dirname(dir_name))}"
             dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
             dest_dir = os.path.join(dest_base, hidden_name)
@@ -89,7 +158,7 @@ def process_database():
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
-            generate_uae_file(hidden_name, dest_base, is_aga)
+            generate_uae_file(hidden_name, dest_base, is_aga, game_name_override)
 
 # --- Main Execution ---
 clear_dir(DB_DIR)

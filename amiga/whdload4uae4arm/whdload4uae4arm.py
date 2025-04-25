@@ -54,7 +54,6 @@ def extract_lha_archives():
             # Map the expanded directory name to the archive filename
             dir_to_archive_map[expanded_dir_name] = file
             expanded_dirs.append(expanded_dir_name)  # Track the expanded directory
-            print(f"{expanded_dir_name} -> {file}")
             successful_expansions += 1
 
             # Move the expanded directory up one level to the expand directory
@@ -103,7 +102,8 @@ def load_game_names():
                     game_name_map[archive_name] = game_name
     return game_name_map
 
-def generate_uae_file(hidden_name, dest_base, is_aga, game_name=None):
+def generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_name_map):
+    """Generate a .uae file for the given directory."""
     dest_dir = os.path.join(dest_base, hidden_name)
     system_base_dir = os.path.join(BASE_DIR, "system_base")
     if os.path.exists(system_base_dir):
@@ -115,8 +115,12 @@ def generate_uae_file(hidden_name, dest_base, is_aga, game_name=None):
             else:
                 shutil.copy2(s, d)
 
-    game_dir = os.path.join(dest_base, hidden_name)
+    # Determine the base name for the .uae file
+    archive_name = dir_to_archive_map.get(hidden_name.lstrip("."), None)
+    game_name = game_name_map.get(archive_name, None)
     visible_name = game_name if game_name else hidden_name.lstrip(".")
+
+    # Write the .uae file
     out_path = os.path.join(dest_base, f"{visible_name}.uae")
     lines = [
         f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
@@ -130,7 +134,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga, game_name=None):
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
 
-def process_database(expanded_dirs):
+def process_database(expanded_dirs, dir_to_archive_map):
     """Process the database and print errors for missing entries."""
     game_name_map = load_game_names()
     processed_dirs = set()  # Track directories processed from the database
@@ -150,7 +154,6 @@ def process_database(expanded_dirs):
                 continue
 
             archive_name = os.path.basename(os.path.dirname(dir_name)) + ".lha"
-            print(f"[INFO] Processing {archive_name} -> {game_name}")
             game_name_override = game_name_map.get(archive_name)
 
             hidden_name = f".{os.path.basename(os.path.dirname(dir_name))}"
@@ -164,7 +167,7 @@ def process_database(expanded_dirs):
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
-            generate_uae_file(hidden_name, dest_base, is_aga, game_name_override)
+            generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_name_map)
             processed_dirs.add(os.path.basename(os.path.dirname(dir_name)))  # Mark directory as processed
 
     # Check for unprocessed directories
@@ -181,4 +184,4 @@ os.makedirs(AMIGA1200_DIR, exist_ok=True)
 
 dir_to_archive_map, expanded_dirs = extract_lha_archives()
 run_scan_slaves()
-process_database(expanded_dirs)
+process_database(expanded_dirs, dir_to_archive_map)

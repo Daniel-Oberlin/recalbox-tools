@@ -24,7 +24,6 @@ def clear_dir(path):
 def extract_lha_archives():
     """Extract LHA archives and map expanded directory names to archive filenames."""
     dir_to_archive_map = {}
-    expanded_dirs = []  # Collect all expanded directories
     total_archives = 0
     successful_expansions = 0
 
@@ -53,7 +52,6 @@ def extract_lha_archives():
 
             # Map the expanded directory name to the archive filename
             dir_to_archive_map[expanded_dir_name] = file
-            expanded_dirs.append(expanded_dir_name)  # Track the expanded directory
             successful_expansions += 1
 
             # Move the expanded directory up one level to the expand directory
@@ -66,8 +64,7 @@ def extract_lha_archives():
             shutil.rmtree(temp_dir)
 
     print(f"[INFO] Successfully expanded {successful_expansions} out of {total_archives} archives.")
-    return dir_to_archive_map, expanded_dirs
-
+    return dir_to_archive_map
 
 def run_scan_slaves():
     """Run the scan_slaves script and count the number of successfully analyzed slave files."""
@@ -134,7 +131,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_n
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
 
-def process_database(expanded_dirs, dir_to_archive_map):
+def process_database(dir_to_archive_map):
     """Process the database and print errors for missing entries."""
     game_name_map = load_game_names()
     processed_dirs = set()  # Track directories processed from the database
@@ -171,7 +168,7 @@ def process_database(expanded_dirs, dir_to_archive_map):
             processed_dirs.add(os.path.basename(os.path.dirname(dir_name)))  # Mark directory as processed
 
     # Check for unprocessed directories
-    unprocessed_dirs = set(expanded_dirs) - processed_dirs
+    unprocessed_dirs = set(dir_to_archive_map.keys()) - processed_dirs
     for unprocessed_dir in unprocessed_dirs:
         print(f"[ERROR] No database entry found for expanded directory: {unprocessed_dir}")
 
@@ -182,6 +179,6 @@ clear_dir(ROMS_DIR)
 os.makedirs(AMIGA600_DIR, exist_ok=True)
 os.makedirs(AMIGA1200_DIR, exist_ok=True)
 
-dir_to_archive_map, expanded_dirs = extract_lha_archives()
+dir_to_archive_map = extract_lha_archives()
 run_scan_slaves()
-process_database(expanded_dirs, dir_to_archive_map)
+process_database(dir_to_archive_map)

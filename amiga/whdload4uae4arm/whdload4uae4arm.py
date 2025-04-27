@@ -11,6 +11,7 @@ DB_DIR = os.path.join(BASE_DIR, "db")
 ROMS_DIR = os.path.join(BASE_DIR, "roms")
 AMIGA600_DIR = os.path.join(ROMS_DIR, "amiga600")
 AMIGA1200_DIR = os.path.join(ROMS_DIR, "amiga1200")
+CD32_DIR = os.path.join(ROMS_DIR, "amigacd32")
 SCAN_SCRIPT = os.path.join(BASE_DIR, "amiga68ktools", "tools", "scan_slaves.py")
 DATABASE_FILE = os.path.join(DB_DIR, "database.csv")
 GAMES_CSV = os.path.join(LHA_DIR, "games.csv")
@@ -154,7 +155,15 @@ def process_database(dir_to_archive_map):
             game_name_override = game_name_map.get(archive_name)
 
             hidden_name = f".{os.path.basename(os.path.dirname(dir_name))}"
-            dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
+            
+            # Determine the destination directory
+            if "CD32" in archive_name.upper():
+                dest_base = CD32_DIR
+            elif is_aga:
+                dest_base = AMIGA1200_DIR
+            else:
+                dest_base = AMIGA600_DIR
+
             dest_dir = os.path.join(dest_base, hidden_name)
             if os.path.exists(dest_dir):
                 shutil.rmtree(dest_dir)
@@ -178,6 +187,7 @@ clear_dir(EXPAND_DIR)
 clear_dir(ROMS_DIR)
 os.makedirs(AMIGA600_DIR, exist_ok=True)
 os.makedirs(AMIGA1200_DIR, exist_ok=True)
+os.makedirs(CD32_DIR, exist_ok=True)  # Create CD32 directory
 
 dir_to_archive_map = extract_lha_archives()
 run_scan_slaves()

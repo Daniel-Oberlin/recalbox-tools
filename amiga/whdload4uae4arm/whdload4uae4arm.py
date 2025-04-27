@@ -14,7 +14,7 @@ AMIGA1200_DIR = os.path.join(ROMS_DIR, "amiga1200")
 CD32_DIR = os.path.join(ROMS_DIR, "amigacd32")
 SCAN_SCRIPT = os.path.join(BASE_DIR, "amiga68ktools", "tools", "scan_slaves.py")
 DATABASE_FILE = os.path.join(DB_DIR, "database.csv")
-GAMES_CSV = os.path.join(LHA_DIR, "games.csv")
+GAMES_CSV = os.path.join(BASE_DIR, "games.csv")
 
 # --- Helpers ---
 def clear_dir(path):
@@ -181,14 +181,119 @@ def process_database(dir_to_archive_map):
     for unprocessed_dir in unprocessed_dirs:
         print(f"[ERROR] No database entry found for expanded directory: {unprocessed_dir}")
 
+def process_adf_files():
+    """Process .adf files and directories containing .adf files."""
+    ADF_DIR = os.path.join(BASE_DIR, "adf")  # Directory containing .adf files
+    if not os.path.exists(ADF_DIR):
+        print(f"[ERROR] ADF directory not found: {ADF_DIR}")
+        return
+
+    for item in os.listdir(ADF_DIR):
+        item_path = os.path.join(ADF_DIR, item)
+
+        # Determine if it's a single .adf file or a directory
+        if os.path.isfile(item_path) and item.lower().endswith(".adf"):
+            # Single .adf file
+            process_single_adf(item_path)
+        elif os.path.isdir(item_path):
+            # Directory containing multiple .adf files
+            process_adf_directory(item_path)
+        else:
+            print(f"[WARN] Skipping unsupported item in ADF directory: {item_path}")
+
+
+def process_single_adf(adf_path):
+    """Process a single .adf file."""
+    base_name = os.path.splitext(os.path.basename(adf_path))[0]
+    is_aga = "AGA" in base_name.upper()
+    dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
+    hidden_name = f".{base_name}"
+    dest_dir = os.path.join(dest_base, hidden_name)
+
+    # Create the hidden directory and copy the .adf file
+    os.makedirs(dest_dir, exist_ok=True)
+    shutil.copy2(adf_path, dest_dir)
+
+    # Determine the game name from the map
+    game_name = load_game_names().get(os.path.basename(adf_path), None)
+    uae_base_name = game_name if game_name else base_name
+
+    # Generate the .uae file at the same level as the hidden directory
+    generate_adf_uae_file(uae_base_name, dest_base, is_aga, [os.path.basename(adf_path)], hidden_name)
+
+
+def process_adf_directory(adf_dir):
+    """Process a directory containing multiple .adf files."""
+    adf_files = sorted([f for f in os.listdir(adf_dir) if f.lower().endswith(".adf")])
+    if not adf_files:
+        print(f"[WARN] No .adf files found in directory: {adf_dir}")
+        return
+
+    # Use the base name of the first alphabetical .adf file
+    first_adf = adf_files[0]
+    base_name = os.path.splitext(first_adf)[0]
+    is_aga = "AGA" in base_name.upper()
+    dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
+    hidden_name = f".{base_name}"
+    dest_dir = os.path.join(dest_base, hidden_name)
+
+    # Create the hidden directory and copy all .adf files
+    os.makedirs(dest_dir, exist_ok=True)
+    for adf_file in adf_files:
+        shutil.copy2(os.path.join(adf_dir, adf_file), dest_dir)
+
+    # Determine the game name from the map
+    game_name = load_game_names().get(first_adf, None)
+    uae_base_name = game_name if game_name else base_name
+
+    # Generate the .uae file at the same level as the hidden directory
+    generate_adf_uae_file(uae_base_name, dest_base, is_aga, adf_files, hidden_name)
+
+
+def generate_adf_uae_file(base_name, dest_base, is_aga, adf_files, hidden_name):
+    """Generate a .uae file for an ADF-based game."""
+    out_path = os.path.join(dest_base, f"{base_name}.uae")  # Place .uae file at the same level as the hidden directory
+    kickstart_path = "/recalbox/share/bios/kick40068.A1200" if is_aga else "/recalbox/share/bios/kick40063.A600"
+
+    # Map the first four alphabetically ordered .adf files to floppy drives
+    floppy_drives = [f"floppy{i}=/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/{adf_files[i]}" for i in range(min(4, len(adf_files)))]
+
+    # Generate the UAE configuration
+    lines = [
+        "use_gui=no",
+        "nr_floppies=4",
+        f"kickstart_rom_file={kickstart_path}",
+        "chipset=aga" if is_aga else "chipset=ecs",
+        "cpu_type=68020" if is_aga else "cpu_type=68000",
+        "chipmem_size=2",
+        "fastmem_size=8",
+    ] + floppy_drives
+
+    # Write the UAE file
+    print(f"Generating UAE config: {out_path}")
+    try:
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+            f.write("\n")  # Ensure trailing newline
+    except IOError as e:
+        print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
+
 # --- Main Execution ---
+print("Starting WHDLoad preparation script...")
+
+print("Clearing previous output directories...")
 clear_dir(DB_DIR)
 clear_dir(EXPAND_DIR)
 clear_dir(ROMS_DIR)
+os.makedirs(DB_DIR, exist_ok=True)
 os.makedirs(AMIGA600_DIR, exist_ok=True)
 os.makedirs(AMIGA1200_DIR, exist_ok=True)
 os.makedirs(CD32_DIR, exist_ok=True)  # Create CD32 directory
+print("Output directories cleared and recreated.")
 
 dir_to_archive_map = extract_lha_archives()
 run_scan_slaves()
 process_database(dir_to_archive_map)
+process_adf_files()
+
+print("Script finished.")

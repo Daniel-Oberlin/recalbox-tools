@@ -18,8 +18,10 @@ Thumbs.db
 
 __pycache__/
 
+amiga/whdload4uae4arm/adf/
 amiga/whdload4uae4arm/db/
 amiga/whdload4uae4arm/expand/
+amiga/whdload4uae4arm/iso/
 amiga/whdload4uae4arm/lha/
 amiga/whdload4uae4arm/roms/
 amiga/whdload4uae4arm/system_base/

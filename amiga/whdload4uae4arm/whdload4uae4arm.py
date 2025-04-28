@@ -278,6 +278,25 @@ def generate_adf_uae_file(base_name, dest_base, is_aga, adf_files, hidden_name):
     except IOError as e:
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
+def process_iso_files():
+    """Copy .iso, .wav, and .cue files from the iso directory to the CD32 ROMs directory."""
+    ISO_DIR = os.path.join(BASE_DIR, "iso")  # Directory containing .iso, .wav, and .cue files
+    if not os.path.exists(ISO_DIR):
+        print(f"[ERROR] ISO directory not found: {ISO_DIR}")
+        return
+
+    for file in os.listdir(ISO_DIR):
+        if file.lower().endswith((".iso", ".wav", ".cue")):
+            src_path = os.path.join(ISO_DIR, file)
+            dest_path = os.path.join(CD32_DIR, file)
+
+            # Copy the file to the CD32 directory
+            try:
+                shutil.copy2(src_path, dest_path)
+                print(f"[INFO] Copied {file} to {CD32_DIR}")
+            except IOError as e:
+                print(f"[ERROR] Failed to copy {file}: {e}")
+
 # --- Main Execution ---
 print("Starting WHDLoad preparation script...")
 
@@ -295,5 +314,6 @@ dir_to_archive_map = extract_lha_archives()
 run_scan_slaves()
 process_database(dir_to_archive_map)
 process_adf_files()
+process_iso_files()  # Add this step to process ISO files
 
 print("Script finished.")

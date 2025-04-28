@@ -232,7 +232,7 @@ def process_adf_directory(adf_dir):
     # Use the base name of the first alphabetical .adf file
     first_adf = adf_files[0]
     base_name = os.path.splitext(first_adf)[0]
-    is_aga = "AGA" in base_name.upper()
+    is_aga = "AGA" in adf_dir.upper()
     dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
     hidden_name = f".{base_name}"
     dest_dir = os.path.join(dest_base, hidden_name)

@@ -52,6 +52,12 @@ Be sure to fill the SD card with dummy "project" partitiosn so that you can add 
 
 Sound needs to be configured for HDMI.
 
+**TODO:**
+  - Figure out how to make small partition again, use the SD card from my drone or remote control
+  - Run through the packaging process again and make sure it is correctly documented
+  - Understand about the permissions and FAT32
+
+
 ## MAME
 
 There are several cores that you can use to run MAME.  I was tempted to use the most recent core because I thought it would provide the best emulation, however I quickly learned that for almost all games, the MAME2003plus core works the best and is easiet to get running.  I only switched to MAME2015 for some of the more recent games, like Mortal Kombat.
@@ -78,5 +84,10 @@ Roms are expected as:
   - Use this: "mount -o remount,rw /" to make the whole filesystem writeable.
 
 ROM names and locations for Amiberry and uae4arm
+
+**Amiga TODO:**
+  - **Amiberry:** Get Amiberry running on Raspberry Pi OS to see if it is worth more time getting it to work on Recalbox
+  - **uae4arm:** Fix NTSC screen so that it is large and centered, also PAL if needed
+  - **uae4arm:** Fix keyboard mappings for US
 
 ## C64

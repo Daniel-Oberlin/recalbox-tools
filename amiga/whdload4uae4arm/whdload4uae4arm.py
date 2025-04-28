@@ -126,7 +126,7 @@ def generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_n
         "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200" if is_aga else "kickstart_rom_file=/recalbox/share/bios/kick40063.A600",
         "cpu_type=68000" if not is_aga else "cpu_type=68020",
         "chipset=ecs" if not is_aga else "chipset=aga",
-        "chipmem_size=2" if is_aga else "chipmem_size=2",
+        "chipmem_size=4" if is_aga else "chipmem_size=2",
         "fastmem_size=8" if is_aga else "fastmem_size=8"
     ]
     with open(out_path, "w") as f:

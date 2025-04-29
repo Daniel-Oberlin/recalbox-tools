@@ -100,7 +100,7 @@ def load_game_names():
                     game_name_map[archive_name] = game_name
     return game_name_map
 
-def generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_name_map):
+def generate_uae_file(hidden_name, dest_base, is_aga, is_cd32, dir_to_archive_map, game_name_map):
     """Generate a .uae file for the given directory."""
     dest_dir = os.path.join(dest_base, hidden_name)
     system_base_dir = os.path.join(BASE_DIR, "system_base")
@@ -120,15 +120,35 @@ def generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_n
 
     # Write the .uae file
     out_path = os.path.join(dest_base, f"{visible_name}.uae")
-    lines = [
-        f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
-        "boot1=dh0",
-        "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200" if is_aga else "kickstart_rom_file=/recalbox/share/bios/kick40063.A600",
-        "cpu_type=68000" if not is_aga else "cpu_type=68020",
-        "chipset=ecs" if not is_aga else "chipset=aga",
-        "chipmem_size=4" if is_aga else "chipmem_size=2",
-        "fastmem_size=8" if is_aga else "fastmem_size=8"
-    ]
+    if is_cd32:
+        # CD32-specific settings
+        lines = [
+            f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
+            "boot1=cd32",
+            "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32",
+            "kickstart_ext_rom_file=/recalbox/share/bios/kick40060.CD32.ext",  # CHECK THIS
+            "chipset=aga",
+            "cpu_type=68ec020",  # CD32 uses 68EC020 CPU
+            "cpu_speed=max",  # Set CPU speed to maximum
+            "chipmem_size=2",
+            "fastmem_size=0",
+            "cd32cd=true",
+            "cd32nvram=true",
+            "use_gui=no",  # Disable GUI for CD32
+            "akiko=true"  # Enable Akiko chip emulation
+        ]
+    else:
+        # AGA/ECS settings
+        lines = [
+            f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
+            "boot1=dh0",
+            "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200" if is_aga else "kickstart_rom_file=/recalbox/share/bios/kick40063.A600",
+            "cpu_type=68000" if not is_aga else "cpu_type=68020",
+            "chipset=ecs" if not is_aga else "chipset=aga",
+            "chipmem_size=4" if is_aga else "chipmem_size=2",
+            "fastmem_size=8" if is_aga else "fastmem_size=8"
+        ]
+
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
 
@@ -143,9 +163,8 @@ def process_database(dir_to_archive_map):
             dir_name = row['path']
             game_name = os.path.basename(os.path.dirname(dir_name))
             flags = row['flags'].split(',')
-            is_aga = 'ReqAGA' in flags
-            if "AGA" in game_name.upper():
-                is_aga = True
+            is_cd32 = "CD32" in game_name.upper()
+            is_aga = 'ReqAGA' in flags or "AGA" in game_name.upper()
             src = os.path.join(EXPAND_DIR, os.path.dirname(dir_name))
             if not os.path.exists(src):
                 print(f"[WARN] Skipping missing path: {src}")
@@ -157,7 +176,7 @@ def process_database(dir_to_archive_map):
             hidden_name = f".{os.path.basename(os.path.dirname(dir_name))}"
             
             # Determine the destination directory
-            if "CD32" in archive_name.upper():
+            if is_cd32:
                 dest_base = CD32_DIR
             elif is_aga:
                 dest_base = AMIGA1200_DIR
@@ -173,7 +192,7 @@ def process_database(dir_to_archive_map):
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
-            generate_uae_file(hidden_name, dest_base, is_aga, dir_to_archive_map, game_name_map)
+            generate_uae_file(hidden_name, dest_base, is_aga, is_cd32, dir_to_archive_map, game_name_map)
             processed_dirs.add(os.path.basename(os.path.dirname(dir_name)))  # Mark directory as processed
 
     # Check for unprocessed directories

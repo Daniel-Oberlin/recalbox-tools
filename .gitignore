@@ -25,6 +25,6 @@ amiga/whdload4uae4arm/iso/
 amiga/whdload4uae4arm/lha/
 amiga/whdload4uae4arm/roms/
 amiga/whdload4uae4arm/system_base/
-!whdload4uae4arm/system_base/S/Startup_Sequence
-
+!amiga/whdload4uae4arm/system_base/S/Startup_Sequence
+music/
 pinn/

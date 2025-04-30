@@ -100,7 +100,7 @@ def load_game_names():
                     game_name_map[archive_name] = game_name
     return game_name_map
 
-def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None):
+def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None, cue_file=None):
     """
     Generate a .uae file for a game.
 
@@ -109,8 +109,9 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
         dest_base (str): The base directory where the .uae file will be placed.
         hidden_dir (str): The hidden directory name for the game.
         system_type (str): The system type ('cd32', 'aga', 'ecs').
-        format_type (str): The format type ('adf', 'whdload').
+        format_type (str): The format type ('adf', 'whdload', 'cd32').
         adf_files (list, optional): List of .adf files for ADF-based games.
+        cue_file (str, optional): The .cue file for CD32 games.
     """
     out_path = os.path.join(dest_base, f"{uae_base_name}.uae")
     lines = []
@@ -140,14 +141,15 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     lines.append("cd32nvram=true" if system_type == "cd32" else None)
 
     # Disk
-    lines.append("cd32cd=true" if system_type == "cd32" else None)
-    lines.append("nr_floppies=4" if format_type == "adf" else None)
-    lines.append("boot1=dh0" if format_type == "whdload" else "boot1=df0" if format_type == "adf" else "boot1=cd32" if system_type == "cd32" else None)
-    lines.append(
-        f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0"
-        if format_type == "whdload" else None
-    )
-    if format_type == "adf" and adf_files:
+    if format_type == "cd32" and cue_file:
+        lines.append(f"cdimage0={os.path.join(hidden_dir, cue_file)},ide0:cd,32bit")
+        lines.append("boot1=cd32")
+    elif format_type == "whdload":
+        lines.append("boot1=dh0")
+        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0")
+    elif format_type == "adf" and adf_files:
+        lines.append("boot1=df0")
+        lines.append("nr_floppies=4")
         floppy_drives = [
             f"floppy{i}=/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/{adf_files[i]}"
             for i in range(min(4, len(adf_files)))
@@ -168,7 +170,6 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
             f.write("\n")  # Ensure trailing newline
     except IOError as e:
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
-
 
 def process_database(dir_to_archive_map, game_name_map):
     """Process the database and print errors for missing entries."""
@@ -286,23 +287,46 @@ def process_adf_directory(adf_dir, game_name_map):
     # Generate the .uae file
     generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", adf_files)
 
-def process_iso_files():
-    """Copy .iso, .wav, and .cue files from the iso directory to the CD32 ROMs directory."""
-    ISO_DIR = os.path.join(BASE_DIR, "iso")  # Directory containing .iso, .wav, and .cue files
+def process_iso_files(game_name_map):
+    """
+    Process subdirectories in the ISO directory for CD32 games.
+    Each subdirectory contains a .cue file and other files.
+    """
+    ISO_DIR = os.path.join(BASE_DIR, "iso")  # Directory containing subdirectories for CD32 games
     if not os.path.exists(ISO_DIR):
         print(f"[ERROR] ISO directory not found: {ISO_DIR}")
         return
 
-    for file in os.listdir(ISO_DIR):
-        if file.lower().endswith((".iso", ".wav", ".cue")):
-            src_path = os.path.join(ISO_DIR, file)
-            dest_path = os.path.join(CD32_DIR, file)
+    for subdir in os.listdir(ISO_DIR):
+        subdir_path = os.path.join(ISO_DIR, subdir)
+        if not os.path.isdir(subdir_path):
+            print(f"[WARN] Skipping non-directory item in ISO directory: {subdir_path}")
+            continue
 
-            # Copy the file to the CD32 directory
-            try:
-                shutil.copy2(src_path, dest_path)
-            except IOError as e:
-                print(f"[ERROR] Failed to copy {file}: {e}")
+        # Find the .cue file in the subdirectory
+        cue_files = [f for f in os.listdir(subdir_path) if f.lower().endswith(".cue")]
+        if len(cue_files) != 1:
+            print(f"[ERROR] Skipping {subdir_path}: Expected exactly one .cue file, found {len(cue_files)}")
+            continue
+
+        cue_file = cue_files[0]
+        base_name = os.path.splitext(cue_file)[0]  # Base name of the .cue file
+        hidden_dir = f".{base_name}"  # Hidden directory name
+        dest_dir = os.path.join(CD32_DIR, hidden_dir)  # Destination hidden directory
+
+        # Determine the .uae file name
+        game_name = game_name_map.get(cue_file, None)
+        uae_base_name = game_name if game_name else base_name  # Use game name if available, otherwise fallback to base name
+
+        # Create the hidden directory and copy all files from the original subdirectory
+        os.makedirs(dest_dir, exist_ok=True)
+        for file in os.listdir(subdir_path):
+            src_path = os.path.join(subdir_path, file)
+            dest_path = os.path.join(dest_dir, file)
+            shutil.copy2(src_path, dest_path)
+
+        # Generate the .uae file
+        generate_uae_file(uae_base_name, CD32_DIR, hidden_dir, "cd32", "cd32", cue_file=cue_file)
 
 # --- Main Execution ---
 print("Starting WHDLoad preparation script...")
@@ -322,6 +346,6 @@ game_name_map = load_game_names()
 run_scan_slaves()
 process_database(dir_to_archive_map, game_name_map)
 process_adf_files(game_name_map)
-process_iso_files()  # Add this step to process ISO files
+process_iso_files(game_name_map)  # Add this step to process ISO files
 
 print("Script finished.")

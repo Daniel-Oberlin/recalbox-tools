@@ -105,7 +105,7 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     Generate a .uae file for a game.
 
     Args:
-        base_name (str): The base name for the .uae file.
+        uae_base_name (str): The base name for the .uae file.
         dest_base (str): The base directory where the .uae file will be placed.
         hidden_dir (str): The hidden directory name for the game.
         system_type (str): The system type ('cd32', 'aga', 'ecs').
@@ -169,9 +169,9 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     except IOError as e:
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
-def process_database(dir_to_archive_map):
+
+def process_database(dir_to_archive_map, game_name_map):
     """Process the database and print errors for missing entries."""
-    game_name_map = load_game_names()
     processed_dirs = set()  # Track directories processed from the database
 
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
@@ -184,7 +184,6 @@ def process_database(dir_to_archive_map):
             is_aga = 'ReqAGA' in flags or "AGA" in expand_dir_name.upper()
             system_type = "cd32" if is_cd32 else "aga" if is_aga else "ecs"
             format_type = "whdload"  # WHDLoad format for database entries
-
 
             src = os.path.join(EXPAND_DIR, os.path.dirname(expand_dir_path))
             if not os.path.exists(src):
@@ -216,7 +215,7 @@ def process_database(dir_to_archive_map):
     for unprocessed_dir in unprocessed_dirs:
         print(f"[ERROR] No database entry found for expanded directory: {unprocessed_dir}")
 
-def process_adf_files():
+def process_adf_files(game_name_map):
     """Process .adf files and directories containing .adf files."""
     ADF_DIR = os.path.join(BASE_DIR, "adf")  # Directory containing .adf files
     if not os.path.exists(ADF_DIR):
@@ -229,15 +228,15 @@ def process_adf_files():
         # Determine if it's a single .adf file or a directory
         if os.path.isfile(item_path) and item.lower().endswith(".adf"):
             # Single .adf file
-            process_single_adf(item_path)
+            process_single_adf(item_path, game_name_map)
         elif os.path.isdir(item_path):
             # Directory containing multiple .adf files
-            process_adf_directory(item_path)
+            process_adf_directory(item_path, game_name_map)
         else:
             print(f"[WARN] Skipping unsupported item in ADF directory: {item_path}")
 
 
-def process_single_adf(adf_path):
+def process_single_adf(adf_path, game_name_map):
     """Process a single .adf file."""
     base_name = os.path.splitext(os.path.basename(adf_path))[0]
     is_aga = "AGA" in base_name.upper()
@@ -256,11 +255,10 @@ def process_single_adf(adf_path):
     uae_base_name = game_name if game_name else base_name
 
     # Generate the .uae file
-
     generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", [os.path.basename(adf_path)])
 
 
-def process_adf_directory(adf_dir):
+def process_adf_directory(adf_dir, game_name_map):
     """Process a directory containing multiple .adf files."""
     adf_files = sorted([f for f in os.listdir(adf_dir) if f.lower().endswith(".adf")])
     if not adf_files:
@@ -282,7 +280,7 @@ def process_adf_directory(adf_dir):
         shutil.copy2(os.path.join(adf_dir, adf_file), dest_dir)
 
     # Determine the game name from the map
-    game_name = load_game_names().get(first_adf, None)
+    game_name = game_name_map.get(first_adf, None)
     uae_base_name = game_name if game_name else base_name
 
     # Generate the .uae file
@@ -322,8 +320,8 @@ print("Output directories cleared and recreated.")
 dir_to_archive_map = extract_lha_archives()
 game_name_map = load_game_names()
 run_scan_slaves()
-process_database(dir_to_archive_map)
-process_adf_files()
+process_database(dir_to_archive_map, game_name_map)
+process_adf_files(game_name_map)
 process_iso_files()  # Add this step to process ISO files
 
 print("Script finished.")

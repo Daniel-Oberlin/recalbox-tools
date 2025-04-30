@@ -100,57 +100,74 @@ def load_game_names():
                     game_name_map[archive_name] = game_name
     return game_name_map
 
-def generate_uae_file(hidden_name, dest_base, is_aga, is_cd32, dir_to_archive_map, game_name_map):
-    """Generate a .uae file for the given directory."""
-    dest_dir = os.path.join(dest_base, hidden_name)
-    system_base_dir = os.path.join(BASE_DIR, "system_base")
-    if os.path.exists(system_base_dir):
-        for item in os.listdir(system_base_dir):
-            s = os.path.join(system_base_dir, item)
-            d = os.path.join(dest_dir, item)
-            if os.path.isdir(s):
-                shutil.copytree(s, d, dirs_exist_ok=True)
-            else:
-                shutil.copy2(s, d)
+def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None):
+    """
+    Generate a .uae file for a game.
 
-    # Determine the base name for the .uae file
-    archive_name = dir_to_archive_map.get(hidden_name.lstrip("."), None)
-    game_name = game_name_map.get(archive_name, None)
-    visible_name = game_name if game_name else hidden_name.lstrip(".")
+    Args:
+        base_name (str): The base name for the .uae file.
+        dest_base (str): The base directory where the .uae file will be placed.
+        hidden_dir (str): The hidden directory name for the game.
+        system_type (str): The system type ('cd32', 'aga', 'ecs').
+        format_type (str): The format type ('adf', 'whdload').
+        adf_files (list, optional): List of .adf files for ADF-based games.
+    """
+    out_path = os.path.join(dest_base, f"{uae_base_name}.uae")
+    lines = []
 
-    # Write the .uae file
-    out_path = os.path.join(dest_base, f"{visible_name}.uae")
-    if is_cd32:
-        # CD32-specific settings
-        lines = [
-            f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
-            "boot1=cd32",
-            "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32",
-            "kickstart_ext_rom_file=/recalbox/share/bios/kick40060.CD32.ext",  # CHECK THIS
-            "chipset=aga",
-            "cpu_type=68ec020",  # CD32 uses 68EC020 CPU
-            "cpu_speed=max",  # Set CPU speed to maximum
-            "chipmem_size=2",
-            "fastmem_size=0",
-            "cd32cd=true",
-            "cd32nvram=true",
-            "use_gui=no",  # Disable GUI for CD32
-            "akiko=true"  # Enable Akiko chip emulation
+    # CPU
+    lines.append("cpu_type=68ec020" if system_type == "cd32" else "cpu_type=68020" if system_type == "aga" else "cpu_type=68000")
+    lines.append("cpu_speed=max" if system_type == "cd32" else None)
+
+    # Chipset
+    lines.append("chipset=aga" if system_type in ["cd32", "aga"] else "chipset=ecs")
+    lines.append("akiko=true" if system_type == "cd32" else None)
+
+    # Memory
+    lines.append("chipmem_size=2" if system_type == "cd32" else "chipmem_size=4" if system_type == "aga" else "chipmem_size=2")
+    lines.append("fastmem_size=0" if system_type == "cd32" else "fastmem_size=8")
+    lines.append(
+        "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32"
+        if system_type == "cd32" else
+        "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200"
+        if system_type == "aga" else
+        "kickstart_rom_file=/recalbox/share/bios/kick40063.A600"
+    )
+    lines.append(
+        "kickstart_ext_rom_file=/recalbox/share/bios/kick40060.CD32.ext"
+        if system_type == "cd32" else None
+    )
+    lines.append("cd32nvram=true" if system_type == "cd32" else None)
+
+    # Disk
+    lines.append("cd32cd=true" if system_type == "cd32" else None)
+    lines.append("nr_floppies=4" if format_type == "adf" else None)
+    lines.append("boot1=dh0" if format_type == "whdload" else "boot1=df0" if format_type == "adf" else "boot1=cd32" if system_type == "cd32" else None)
+    lines.append(
+        f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0"
+        if format_type == "whdload" else None
+    )
+    if format_type == "adf" and adf_files:
+        floppy_drives = [
+            f"floppy{i}=/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/{adf_files[i]}"
+            for i in range(min(4, len(adf_files)))
         ]
-    else:
-        # AGA/ECS settings
-        lines = [
-            f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/,0",
-            "boot1=dh0",
-            "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200" if is_aga else "kickstart_rom_file=/recalbox/share/bios/kick40063.A600",
-            "cpu_type=68000" if not is_aga else "cpu_type=68020",
-            "chipset=ecs" if not is_aga else "chipset=aga",
-            "chipmem_size=4" if is_aga else "chipmem_size=2",
-            "fastmem_size=8" if is_aga else "fastmem_size=8"
-        ]
+        lines.extend(floppy_drives)
 
-    with open(out_path, "w") as f:
-        f.write("\n".join(lines))
+    # Misc
+    lines.append("use_gui=no" if system_type == "cd32" else None)
+
+    # Remove all None entries
+    lines = [line for line in lines if line is not None]
+
+    # Write the UAE file
+    print(f"Generating UAE config: {out_path}")
+    try:
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+            f.write("\n")  # Ensure trailing newline
+    except IOError as e:
+        print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
 def process_database(dir_to_archive_map):
     """Process the database and print errors for missing entries."""
@@ -160,30 +177,29 @@ def process_database(dir_to_archive_map):
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
-            dir_name = row['path']
-            game_name = os.path.basename(os.path.dirname(dir_name))
+            expand_dir_path = row['path']
+            expand_dir_name = os.path.basename(os.path.dirname(expand_dir_path))
             flags = row['flags'].split(',')
-            is_cd32 = "CD32" in game_name.upper()
-            is_aga = 'ReqAGA' in flags or "AGA" in game_name.upper()
-            src = os.path.join(EXPAND_DIR, os.path.dirname(dir_name))
+            is_cd32 = "CD32" in expand_dir_name.upper()
+            is_aga = 'ReqAGA' in flags or "AGA" in expand_dir_name.upper()
+            system_type = "cd32" if is_cd32 else "aga" if is_aga else "ecs"
+            format_type = "whdload"  # WHDLoad format for database entries
+
+
+            src = os.path.join(EXPAND_DIR, os.path.dirname(expand_dir_path))
             if not os.path.exists(src):
                 print(f"[WARN] Skipping missing path: {src}")
                 continue
 
-            archive_name = os.path.basename(os.path.dirname(dir_name)) + ".lha"
+            archive_name = dir_to_archive_map.get(expand_dir_name, None)
             game_name_override = game_name_map.get(archive_name)
 
-            hidden_name = f".{os.path.basename(os.path.dirname(dir_name))}"
-            
-            # Determine the destination directory
-            if is_cd32:
-                dest_base = CD32_DIR
-            elif is_aga:
-                dest_base = AMIGA1200_DIR
-            else:
-                dest_base = AMIGA600_DIR
+            # Use game_name_override if set, otherwise fallback to the existing logic
+            uae_base_name = game_name_override if game_name_override else expand_dir_name
+            hidden_dir = f".{archive_name.rsplit('.', 1)[0]}" if archive_name else f".{expand_dir_name}"
+            dest_base = CD32_DIR if system_type == "cd32" else AMIGA1200_DIR if system_type == "aga" else AMIGA600_DIR
 
-            dest_dir = os.path.join(dest_base, hidden_name)
+            dest_dir = os.path.join(dest_base, hidden_dir)
             if os.path.exists(dest_dir):
                 shutil.rmtree(dest_dir)
             if os.path.isdir(src):
@@ -192,8 +208,8 @@ def process_database(dir_to_archive_map):
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
-            generate_uae_file(hidden_name, dest_base, is_aga, is_cd32, dir_to_archive_map, game_name_map)
-            processed_dirs.add(os.path.basename(os.path.dirname(dir_name)))  # Mark directory as processed
+            generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type)
+            processed_dirs.add(expand_dir_name)  # Mark directory as processed
 
     # Check for unprocessed directories
     unprocessed_dirs = set(dir_to_archive_map.keys()) - processed_dirs
@@ -225,20 +241,23 @@ def process_single_adf(adf_path):
     """Process a single .adf file."""
     base_name = os.path.splitext(os.path.basename(adf_path))[0]
     is_aga = "AGA" in base_name.upper()
+    system_type = "aga" if is_aga else "ecs"
     dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
-    hidden_name = f".{base_name}"
-    dest_dir = os.path.join(dest_base, hidden_name)
+    hidden_dir = f".{base_name}"
+    dest_dir = os.path.join(dest_base, hidden_dir)
 
     # Create the hidden directory and copy the .adf file
     os.makedirs(dest_dir, exist_ok=True)
     shutil.copy2(adf_path, dest_dir)
 
     # Determine the game name from the map
-    game_name = load_game_names().get(os.path.basename(adf_path), None)
+    game_name = game_name_map.get(os.path.basename(adf_path), None)
+    print(f"[INFO] Processing {os.path.basename(adf_path)} -> {game_name}")
     uae_base_name = game_name if game_name else base_name
 
-    # Generate the .uae file at the same level as the hidden directory
-    generate_adf_uae_file(uae_base_name, dest_base, is_aga, [os.path.basename(adf_path)], hidden_name)
+    # Generate the .uae file
+
+    generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", [os.path.basename(adf_path)])
 
 
 def process_adf_directory(adf_dir):
@@ -252,9 +271,10 @@ def process_adf_directory(adf_dir):
     first_adf = adf_files[0]
     base_name = os.path.splitext(first_adf)[0]
     is_aga = "AGA" in adf_dir.upper()
+    system_type = "aga" if is_aga else "ecs"
     dest_base = AMIGA1200_DIR if is_aga else AMIGA600_DIR
-    hidden_name = f".{base_name}"
-    dest_dir = os.path.join(dest_base, hidden_name)
+    hidden_dir = f".{base_name}"
+    dest_dir = os.path.join(dest_base, hidden_dir)
 
     # Create the hidden directory and copy all .adf files
     os.makedirs(dest_dir, exist_ok=True)
@@ -265,37 +285,8 @@ def process_adf_directory(adf_dir):
     game_name = load_game_names().get(first_adf, None)
     uae_base_name = game_name if game_name else base_name
 
-    # Generate the .uae file at the same level as the hidden directory
-    generate_adf_uae_file(uae_base_name, dest_base, is_aga, adf_files, hidden_name)
-
-
-def generate_adf_uae_file(base_name, dest_base, is_aga, adf_files, hidden_name):
-    """Generate a .uae file for an ADF-based game."""
-    out_path = os.path.join(dest_base, f"{base_name}.uae")  # Place .uae file at the same level as the hidden directory
-    kickstart_path = "/recalbox/share/bios/kick40068.A1200" if is_aga else "/recalbox/share/bios/kick40063.A600"
-
-    # Map the first four alphabetically ordered .adf files to floppy drives
-    floppy_drives = [f"floppy{i}=/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_name}/{adf_files[i]}" for i in range(min(4, len(adf_files)))]
-
-    # Generate the UAE configuration
-    lines = [
-        "use_gui=no",
-        "nr_floppies=4",
-        f"kickstart_rom_file={kickstart_path}",
-        "chipset=aga" if is_aga else "chipset=ecs",
-        "cpu_type=68020" if is_aga else "cpu_type=68000",
-        "chipmem_size=2",
-        "fastmem_size=8",
-    ] + floppy_drives
-
-    # Write the UAE file
-    print(f"Generating UAE config: {out_path}")
-    try:
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
-            f.write("\n")  # Ensure trailing newline
-    except IOError as e:
-        print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
+    # Generate the .uae file
+    generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", adf_files)
 
 def process_iso_files():
     """Copy .iso, .wav, and .cue files from the iso directory to the CD32 ROMs directory."""
@@ -312,7 +303,6 @@ def process_iso_files():
             # Copy the file to the CD32 directory
             try:
                 shutil.copy2(src_path, dest_path)
-                print(f"[INFO] Copied {file} to {CD32_DIR}")
             except IOError as e:
                 print(f"[ERROR] Failed to copy {file}: {e}")
 
@@ -330,6 +320,7 @@ os.makedirs(CD32_DIR, exist_ok=True)  # Create CD32 directory
 print("Output directories cleared and recreated.")
 
 dir_to_archive_map = extract_lha_archives()
+game_name_map = load_game_names()
 run_scan_slaves()
 process_database(dir_to_archive_map)
 process_adf_files()

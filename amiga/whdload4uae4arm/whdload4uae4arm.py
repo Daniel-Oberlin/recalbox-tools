@@ -209,6 +209,17 @@ def process_database(dir_to_archive_map, game_name_map):
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
 
+            # Copy the contents of system_base into the hidden directory
+            system_base = os.path.join(BASE_DIR, "system_base")
+            if os.path.exists(system_base):
+                for item in os.listdir(system_base):
+                    src_path = os.path.join(system_base, item)
+                    dest_path = os.path.join(dest_dir, item)
+                    if os.path.isdir(src_path):
+                        shutil.copytree(src_path, dest_path, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(src_path, dest_path)
+
             # Handle kick_name logic for WHDLoad games
             if format_type == "whdload" and kick_name:
                 if is_valid_kick_name(kick_name):
@@ -341,26 +352,38 @@ def is_valid_kick_name(kick_name):
 
 def copy_kickstart_file(kick_name, dest_dir):
     """
-    Copy the kickstart file from the kickstart directory to the Devs directory.
+    Copy the kickstart file and its corresponding .RTB file from the kickstart directory
+    to the Devs/Kickstarts directory.
 
     Args:
         kick_name (str): The validated kick_name (e.g., "34005.a500").
         dest_dir (str): The destination directory (hidden folder).
     """
     kickstart_dir = os.path.join(BASE_DIR, "kickstart")
-    devs_dir = os.path.join(dest_dir, "Devs")
-    os.makedirs(devs_dir, exist_ok=True)
+    kickstarts_dir = os.path.join(dest_dir, "Devs", "Kickstarts")
+    os.makedirs(kickstarts_dir, exist_ok=True)
 
-    # Construct source and destination file paths
+    # Construct source and destination file paths for the kickstart file
     source_file = os.path.join(kickstart_dir, f"kick{kick_name.upper()}")
-    dest_file = os.path.join(devs_dir, f"kick{kick_name.capitalize()}")
+    dest_file = os.path.join(kickstarts_dir, f"kick{kick_name.upper()}")
 
-    # Copy the file
+    # Copy the kickstart file
     if os.path.exists(source_file):
         shutil.copy2(source_file, dest_file)
         print(f"[INFO] Copied {source_file} to {dest_file}")
     else:
         print(f"[WARN] Kickstart file not found: {source_file}")
+
+    # Construct source and destination file paths for the .RTB file
+    source_rtb_file = f"{source_file}.RTB"
+    dest_rtb_file = f"{dest_file}.RTB"
+
+    # Copy the .RTB file
+    if os.path.exists(source_rtb_file):
+        shutil.copy2(source_rtb_file, dest_rtb_file)
+        print(f"[INFO] Copied {source_rtb_file} to {dest_rtb_file}")
+    else:
+        print(f"[WARN] RTB file not found: {source_rtb_file}")
 
 # --- Main Execution ---
 print("Starting WHDLoad preparation script...")

@@ -126,7 +126,7 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
 
     # Memory
     lines.append("chipmem_size=2" if system_type == "cd32" else "chipmem_size=4" if system_type == "aga" else "chipmem_size=2")
-    lines.append("fastmem_size=0" if system_type == "cd32" else "fastmem_size=8")
+    lines.append("fastmem_size=8")
     lines.append(
         "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32"
         if system_type == "cd32" else
@@ -142,11 +142,12 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
 
     # Disk
     if format_type == "cd32" and cue_file:
-        lines.append(f"cdimage0={os.path.join(hidden_dir, cue_file)},ide0:cd,32bit")
+        lines.append(f"cdimage0={os.path.join(hidden_dir, cue_file)}")
         lines.append("boot1=cd32")
+        lines.append("cd32cd=true")
     elif format_type == "whdload":
         lines.append("boot1=dh0")
-        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0")
+        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/")
     elif format_type == "adf" and adf_files:
         lines.append("boot1=df0")
         lines.append("nr_floppies=4")
@@ -269,7 +270,6 @@ def process_single_adf(adf_path, game_name_map):
 
     # Determine the game name from the map
     game_name = game_name_map.get(os.path.basename(adf_path), None)
-    print(f"[INFO] Processing {os.path.basename(adf_path)} -> {game_name}")
     uae_base_name = game_name if game_name else base_name
 
     # Generate the .uae file
@@ -370,7 +370,6 @@ def copy_kickstart_file(kick_name, dest_dir):
     # Copy the kickstart file
     if os.path.exists(source_file):
         shutil.copy2(source_file, dest_file)
-        print(f"[INFO] Copied {source_file} to {dest_file}")
     else:
         print(f"[WARN] Kickstart file not found: {source_file}")
 
@@ -381,7 +380,6 @@ def copy_kickstart_file(kick_name, dest_dir):
     # Copy the .RTB file
     if os.path.exists(source_rtb_file):
         shutil.copy2(source_rtb_file, dest_rtb_file)
-        print(f"[INFO] Copied {source_rtb_file} to {dest_rtb_file}")
     else:
         print(f"[WARN] RTB file not found: {source_rtb_file}")
 

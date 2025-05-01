@@ -172,7 +172,7 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
 def process_database(dir_to_archive_map, game_name_map):
-    """Process the database and print errors for missing entries."""
+    """Process the database and handle WHDLoad games with kick_name logic."""
     processed_dirs = set()  # Track directories processed from the database
 
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
@@ -181,6 +181,7 @@ def process_database(dir_to_archive_map, game_name_map):
             expand_dir_path = row['path']
             expand_dir_name = os.path.basename(os.path.dirname(expand_dir_path))
             flags = row['flags'].split(',')
+            kick_name = row.get('kick_name', '').strip()  # Get the kick_name field
             is_cd32 = "CD32" in expand_dir_name.upper()
             is_aga = 'ReqAGA' in flags or "AGA" in expand_dir_name.upper()
             system_type = "cd32" if is_cd32 else "aga" if is_aga else "ecs"
@@ -207,6 +208,11 @@ def process_database(dir_to_archive_map, game_name_map):
             else:
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
+
+            # Handle kick_name logic for WHDLoad games
+            if format_type == "whdload" and kick_name:
+                if is_valid_kick_name(kick_name):
+                    copy_kickstart_file(kick_name, dest_dir)
 
             generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type)
             processed_dirs.add(expand_dir_name)  # Mark directory as processed
@@ -327,6 +333,34 @@ def process_iso_files(game_name_map):
 
         # Generate the .uae file
         generate_uae_file(uae_base_name, CD32_DIR, hidden_dir, "cd32", "cd32", cue_file=cue_file)
+
+def is_valid_kick_name(kick_name):
+    """Validate the kick_name format: nnnnn.a*."""
+    import re
+    return bool(re.fullmatch(r"\d{5}\.a.*", kick_name, re.IGNORECASE))
+
+def copy_kickstart_file(kick_name, dest_dir):
+    """
+    Copy the kickstart file from the kickstart directory to the Devs directory.
+
+    Args:
+        kick_name (str): The validated kick_name (e.g., "34005.a500").
+        dest_dir (str): The destination directory (hidden folder).
+    """
+    kickstart_dir = os.path.join(BASE_DIR, "kickstart")
+    devs_dir = os.path.join(dest_dir, "Devs")
+    os.makedirs(devs_dir, exist_ok=True)
+
+    # Construct source and destination file paths
+    source_file = os.path.join(kickstart_dir, f"kick{kick_name.upper()}")
+    dest_file = os.path.join(devs_dir, f"kick{kick_name.capitalize()}")
+
+    # Copy the file
+    if os.path.exists(source_file):
+        shutil.copy2(source_file, dest_file)
+        print(f"[INFO] Copied {source_file} to {dest_file}")
+    else:
+        print(f"[WARN] Kickstart file not found: {source_file}")
 
 # --- Main Execution ---
 print("Starting WHDLoad preparation script...")

@@ -24,8 +24,14 @@ amiga/whdload4uae4arm/expand/
 amiga/whdload4uae4arm/iso/
 amiga/whdload4uae4arm/lha/
 amiga/whdload4uae4arm/roms/
-amiga/whdload4uae4arm/system_base/
-!amiga/whdload4uae4arm/system_base/S/Startup_Sequence
+
+# Ignore everything in system_base
+amiga/whdload4uae4arm/system_base/*
+
+# But don't ignore the S directory or Startup-Sequence file
+!amiga/whdload4uae4arm/system_base/S/
+!amiga/whdload4uae4arm/system_base/S/Startup-Sequence
+
 music/
 pinn/
 kickstart/

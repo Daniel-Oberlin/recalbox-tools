@@ -1,0 +1,6 @@
+SetPatch QUIET
+Assign T: RAM:
+Assign ENV: RAM:
+ASSIGN DEVS: SYS:Devs
+List #?.slave LFORMAT="WHDLoad %N PRELOAD" TO T:cmd
+Execute T:cmd

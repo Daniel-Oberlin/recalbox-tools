@@ -1,0 +1,39 @@
+Parameter,Amiberry,UAE4ARM,PUAE,Description,Values/Format,Required,Default Value
+rom_path,☑️,☑️,☑️,Base search path for Kickstart ROMs.,String: directory path,⬜,(current dir)
+floppy_path,☑️,☑️,☑️,Directory for floppy images.,String: dir path,⬜,[base]/Floppies
+hardfile_path,☑️,☑️,☑️,Directory for HDF images.,String: dir path,⬜,(current dir)
+kickstart_rom_file,☑️,☑️,☑️,Main Kickstart ROM image.,String: file path,☑️,None (must supply)
+kickstart_ext_rom_file,☑️,☑️,☑️,Second ROM for CDTV/CD32.,String: file path,⬜,None
+use_gui,☑️,☑️,☑️,Show GUI before boot.,Boolean,⬜,true
+use_debugger,☑️,☑️,☑️,Enter debugger.,Boolean,⬜,false
+cpu_type,☑️,☑️,☑️,Emulated CPU model.,Enum 68000‑68060,⬜,68000
+cpu_speed,☑️,☑️,☑️,CPU timing bias.,real|max|1‑20,⬜,real
+cpu_compatible,☑️,☑️,☑️,More compatible core.,Boolean,⬜,false
+cpu_cycle_exact,☑️,☑️,☑️,Cycle‑exact timing.,Boolean,⬜,false
+chipmem_size,☑️,☑️,☑️,Chip RAM size.,0.5‑8 MB (512 k steps),⬜,0.5 MB (1)
+bogomem_size,☑️,☑️,☑️,Slow RAM.,0‑1.8 MB (256 k steps),⬜,0
+fastmem_size,☑️,☑️,☑️,Zorro II Fast RAM.,0‑8 MB,⬜,0
+z3mem_size,☑️,☑️,☑️,Zorro III Fast RAM.,0‑512 MB,⬜,0
+rtgmem_size,☑️,⬜,☑️,VRAM for RTG card.,"0,4,8,16 MB",⬜,0
+chipset,☑️,☑️,☑️,Chipset revision.,ocs|ecs|aga,⬜,ecs
+ntsc,☑️,☑️,☑️,PAL/NTSC timing.,Boolean,⬜,false (PAL)
+gfx_width,☑️,☑️,☑️,Window width hint.,Integer px,⬜,auto
+gfx_height,☑️,☑️,☑️,Window height hint.,Integer px,⬜,auto
+gfx_fullscreen,☑️,☑️,☑️,Full‑screen mode.,Boolean,⬜,false
+gfx_center_horizontal,☑️,☑️,☑️,Centre overscan X.,0|1|2,⬜,1
+gfx_center_vertical,☑️,☑️,☑️,Centre overscan Y.,0|1|2,⬜,1
+sound_frequency,☑️,☑️,☑️,Audio sample rate.,11025‑48000,⬜,44100
+sound_stereo_separation,☑️,☑️,☑️,Stereo separation.,0‑10,⬜,7
+floppy0 / floppy1,☑️,☑️,☑️,Disk image path.,Path .adf,⬜,Empty
+floppy_speed,☑️,☑️,☑️,Drive speed factor.,100‑800,⬜,100
+filesystem2,☑️,☑️,☑️,Host dir mount.,"rw|ro,...",⬜,None
+hardfile2,☑️,☑️,☑️,Attach HDF.,"rw|ro,...",⬜,None
+joyport0 / joyport1,☑️,☑️,☑️,Input device.,mouse|kbd|joyX,⬜,mouse / keyboard
+input_autofire,☑️,☑️,☑️,Rapid‑fire.,0|1,⬜,0
+input_joymouse_mixed_port,☑️,☑️,☑️,Mouse+joy mixed.,0|1,⬜,0
+whdload_autoboot,☑️,⬜,⬜,Amiberry WHD autoload.,Boolean,⬜,false
+whdload_custom1‑5,☑️,⬜,⬜,Tool‑type values.,0‑255,⬜,0
+whdload_quit_key,☑️,⬜,⬜,Quit key.,Hex scancode,⬜,0x5f (F12)
+jit_enable,⬜,☑️,☑️,Enable JIT.,Boolean,⬜,false
+finegrain_cpu_speed,☑️,☑️,☑️,Fine speed control.,int,⬜,0
+cpu_idle,☑️,☑️,☑️,Idle percentage.,0‑99,⬜,0

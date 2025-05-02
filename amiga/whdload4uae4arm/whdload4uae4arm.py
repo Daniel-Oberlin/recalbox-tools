@@ -87,18 +87,42 @@ def run_scan_slaves():
 
     print(stderr.strip())
 
-def load_game_names():
-    """Load game names from games.csv if it exists."""
-    game_name_map = {}
+def load_game_overrides():
+    """Load game names and overrides from games.csv if it exists."""
+    game_override_map = {}
     if os.path.exists(GAMES_CSV):
         with open(GAMES_CSV, newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 archive_name = row.get("Archive Name", "").strip()
                 game_name = row.get("Game", "").strip()
-                if archive_name and game_name:
-                    game_name_map[archive_name] = game_name
-    return game_name_map
+                settings = row.get("Overrides", "").strip()
+
+                # Skip if no archive name is provided
+                if not archive_name:
+                    continue
+
+                # Skip if no game name or settings are provided
+                if not game_name and not settings:
+                    continue
+
+                # Parse overrides into a dictionary
+                uae_override_map = {}
+                if settings:
+                    for pair in settings.replace(";", " ").split():
+                        if "=" in pair:
+                            key, value = pair.split("=", 1)
+                            uae_override_map[key.strip()] = value.strip()
+
+                # Only add to the map if game_name or overrides are present
+                entry = {}
+                if game_name:
+                    entry["game_name_override"] = game_name
+                if uae_override_map:
+                    entry["game_settings_overrides"] = uae_override_map
+                game_override_map[archive_name] = entry
+
+    return game_override_map
 
 def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None, cue_file=None):
     """
@@ -171,8 +195,8 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     except IOError as e:
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
-def process_database(dir_to_archive_map, game_name_map):
-    """Process the database and handle WHDLoad games with kick_name logic."""
+def process_database(dir_to_archive_map, game_override_map):
+    """Process the database and handle WHDLoad games with kick_name and overrides logic."""
     processed_dirs = set()  # Track directories processed from the database
 
     with open(DATABASE_FILE, newline='', encoding='utf-8') as csvfile:
@@ -193,7 +217,9 @@ def process_database(dir_to_archive_map, game_name_map):
                 continue
 
             archive_name = dir_to_archive_map.get(expand_dir_name, None)
-            game_name_override = game_name_map.get(archive_name)
+            game_info = game_override_map.get(archive_name, {})
+            game_name_override = game_info.get("game_name_override")
+            game_settings_overrides = game_info.get("game_settings_overrides", {})
 
             # Use game_name_override if set, otherwise fallback to the existing logic
             uae_base_name = game_name_override if game_name_override else expand_dir_name
@@ -221,9 +247,11 @@ def process_database(dir_to_archive_map, game_name_map):
                         shutil.copy2(src_path, dest_path)
 
             # Handle kick_name logic for WHDLoad games
-            if format_type == "whdload" and kick_name:
-                if is_valid_kick_name(kick_name):
-                    copy_kickstart_file(kick_name, dest_dir)
+            if format_type == "whdload":
+                # Check for kick_name or whdkick override
+                effective_kick_name = game_settings_overrides.get("whdkick", kick_name)
+                if effective_kick_name and is_valid_kick_name(effective_kick_name):
+                    copy_kickstart_file(effective_kick_name, dest_dir)
 
             generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type)
             processed_dirs.add(expand_dir_name)  # Mark directory as processed
@@ -254,7 +282,7 @@ def process_adf_files(game_name_map):
             print(f"[WARN] Skipping unsupported item in ADF directory: {item_path}")
 
 
-def process_single_adf(adf_path, game_name_map):
+def process_single_adf(adf_path, game_override_map):
     """Process a single .adf file."""
     base_name = os.path.splitext(os.path.basename(adf_path))[0]
     is_aga = "AGA" in base_name.upper()
@@ -267,15 +295,20 @@ def process_single_adf(adf_path, game_name_map):
     os.makedirs(dest_dir, exist_ok=True)
     shutil.copy2(adf_path, dest_dir)
 
-    # Determine the game name from the map
-    game_name = game_name_map.get(os.path.basename(adf_path), None)
-    uae_base_name = game_name if game_name else base_name
+    # Determine the game name and settings overrides
+    archive_name = os.path.basename(adf_path)
+    game_info = game_override_map.get(archive_name, {})
+    game_name_override = game_info.get("game_name_override")
+    game_settings_overrides = game_info.get("game_settings_overrides", {})
+
+    # Use game_name_override if set, otherwise fallback to the base name
+    uae_base_name = game_name_override if game_name_override else base_name
 
     # Generate the .uae file
     generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", [os.path.basename(adf_path)])
 
 
-def process_adf_directory(adf_dir, game_name_map):
+def process_adf_directory(adf_dir, game_override_map):
     """Process a directory containing multiple .adf files."""
     adf_files = sorted([f for f in os.listdir(adf_dir) if f.lower().endswith(".adf")])
     if not adf_files:
@@ -296,14 +329,19 @@ def process_adf_directory(adf_dir, game_name_map):
     for adf_file in adf_files:
         shutil.copy2(os.path.join(adf_dir, adf_file), dest_dir)
 
-    # Determine the game name from the map
-    game_name = game_name_map.get(first_adf, None)
-    uae_base_name = game_name if game_name else base_name
+    # Determine the game name and settings overrides
+    archive_name = os.path.basename(adf_files[0])
+    game_info = game_override_map.get(archive_name, {})
+    game_name_override = game_info.get("game_name_override")
+    game_settings_overrides = game_info.get("game_settings_overrides", {})
+
+    # Use game_name_override if set, otherwise fallback to the base name
+    uae_base_name = game_name_override if game_name_override else base_name
 
     # Generate the .uae file
     generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", adf_files)
 
-def process_iso_files(game_name_map):
+def process_iso_files(game_override_map):
     """
     Process subdirectories in the ISO directory for CD32 games.
     Each subdirectory contains a .cue file and other files.
@@ -330,16 +368,21 @@ def process_iso_files(game_name_map):
         hidden_dir = f".{base_name}"  # Hidden directory name
         dest_dir = os.path.join(CD32_DIR, hidden_dir)  # Destination hidden directory
 
-        # Determine the .uae file name
-        game_name = game_name_map.get(cue_file, None)
-        uae_base_name = game_name if game_name else base_name  # Use game name if available, otherwise fallback to base name
-
         # Create the hidden directory and copy all files from the original subdirectory
         os.makedirs(dest_dir, exist_ok=True)
         for file in os.listdir(subdir_path):
             src_path = os.path.join(subdir_path, file)
             dest_path = os.path.join(dest_dir, file)
             shutil.copy2(src_path, dest_path)
+
+        # Determine the game name and settings overrides
+        archive_name = cue_file
+        game_info = game_override_map.get(archive_name, {})
+        game_name_override = game_info.get("game_name_override")
+        game_settings_overrides = game_info.get("game_settings_overrides", {})
+
+        # Use game_name_override if set, otherwise fallback to the base name
+        uae_base_name = game_name_override if game_name_override else base_name
 
         # Generate the .uae file
         generate_uae_file(uae_base_name, CD32_DIR, hidden_dir, "cd32", "cd32", cue_file=cue_file)
@@ -396,10 +439,10 @@ os.makedirs(CD32_DIR, exist_ok=True)  # Create CD32 directory
 print("Output directories cleared and recreated.")
 
 dir_to_archive_map = extract_lha_archives()
-game_name_map = load_game_names()
+game_override_map = load_game_overrides()
 run_scan_slaves()
-process_database(dir_to_archive_map, game_name_map)
-process_adf_files(game_name_map)
-process_iso_files(game_name_map)  # Add this step to process ISO files
+process_database(dir_to_archive_map, game_override_map)
+process_adf_files(game_override_map)
+process_iso_files(game_override_map)  # Add this step to process ISO files
 
 print("Script finished.")

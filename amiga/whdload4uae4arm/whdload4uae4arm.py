@@ -147,7 +147,7 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
         lines.append("cd32cd=true")
     elif format_type == "whdload":
         lines.append("boot1=dh0")
-        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/")
+        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0")
     elif format_type == "adf" and adf_files:
         lines.append("boot1=df0")
         lines.append("nr_floppies=4")

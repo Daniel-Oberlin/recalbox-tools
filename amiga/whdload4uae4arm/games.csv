@@ -1,9 +1,8 @@
 Game,Archive Name,Format,Hardware,Emulator,Overrides,Notes
-Another World,AnotherWorld_v2.4_0425.lha,WHDLoad,ECS,UAE4ARM,,
-Armour Geddon,ArmourGeddon_v1.0_NTSC.lha,WHDLoad,ECS,UAE4ARM,,
-Defender of the Crown,DefenderOfTheCrown_v3.1_0317.lha,WHDLoad,ECS,UAE4ARM,,
-Defender of the Crown 2,DefenderOfTheCrown2_v1.1_CD32.lha,WHDLoad,CD32,UAE4ARM,,
-Deluxe Galaga,DeluxeGalaga_v1.2_AGA.lha,WHDLoad,AGA,UAE4ARM,,
+Another World,AnotherWorld_v2.4_0425.lha,WHDLoad,ECS,UAE4ARM,,Needs a code wheel???  And access codes???
+Armour Geddon,ArmourGeddon_v1.0_NTSC.lha,WHDLoad,ECS,UAE4ARM,,Doesn't finish loading
+Defender of the Crown,DefenderOfTheCrown_v3.1_0317.lha,WHDLoad,ECS,UAE4ARM,,"Runs, but screen is not filled, NTSC?"
+Deluxe Galaga,DeluxeGalaga_v1.2_AGA.lha,WHDLoad,AGA,UAE4ARM,whdkick=40068.a1200,"Wants a kickstart, 40068.a1200, 40068.a4000 or 40063.a600"
 Dune,Dune_v3.0_1156.lha,WHDLoad,ECS,UAE4ARM,,
 Dune 2,Dune2_v1.1_1548.lha,WHDLoad,ECS,UAE4ARM,,
 Elite,Elite_v2.0_1572.lha,WHDLoad,ECS,UAE4ARM,,
@@ -18,9 +17,9 @@ Lemmings,Lemmings_v1.5_Files_2089.lha,WHDLoad,ECS,UAE4ARM,,
 Oscar,Oscar_v1.8_AGA_1095.lha,WHDLoad,AGA,UAE4ARM,,
 Pinball Dreams,PinballDreams_v1.5_0377.lha,WHDLoad,ECS,UAE4ARM,,
 Pinball Fantasies,pinball_fantasies-1.adf,ADF,AGA,UAE4ARM,,
-Pinball Fantasies,Pinball Fantasies (1993)(21st Century Entertainment)[!].cue,ISO,CD32,PUAE,,
+Pinball Fantasies,Pinball Fantasies (1993)(21st Century Entertainment)[!].cue,ISO,CD32,PUAE,,Works great but choppy CD sound
 Pinball Illusions,PinballIllusions_v2.2_AGA_0710.lha,WHDLoad,AGA,UAE4ARM,,
-Risk,Risk_v1.0_1125.lha,WHDLoad,ECS,UAE4ARM,,
+Risk,Risk_v1.0_1125.lha,WHDLoad,ECS,UAE4ARM,whdkick=34005.a500,
 Scorched Tanks,Scorched Tanks v0.95 (1993)(M. Welch)(beta).adf,ADF,ECS,UAE4ARM,,
 Shadow of the Beast,ShadowOfTheBeast_v2.4_1357.lha,WHDLoad,ECS,UAE4ARM,,
 Skyfox,Skyfox_v1.0_NTSC_0903.lha,WHDLoad,ECS,UAE4ARM,,
@@ -33,10 +32,9 @@ Stunt Car Racer,StuntCarRacer_v1.3_0222.lha,WHDLoad,ECS,UAE4ARM,,
 Stunt Car Racer TNT,StuntCarRacerTNT_v1.3.lha,WHDLoad,ECS,UAE4ARM,,
 Super Space Invaders,SuperSpaceInvaders_v1.2.lha,WHDLoad,ECS,UAE4ARM,,
 Super Stardust,SuperStardust_v1.2_AGA_0175.lha,WHDLoad,AGA,UAE4ARM,,
-Super Stardust,Super Stardust (1994)(Team 17)[!].cue,ISO,CD32,PUAE,,
+Super Stardust,Super Stardust (1994)(Team 17)[!].cue,ISO,CD32,PUAE,,Works great but choppy CD sound
 Syndicate,SYND1.ADF,ADF,ECS,UAE4ARM,,
 The Chaos Engine,ChaosEngine_v1.2_AGA_1324.lha,WHDLoad,AGA,UAE4ARM,,
 UFO Enemy Unknown,UFO_1.ADF,ADF,ECS,UAE4ARM,,
-UFO Enemy Unknown,UFOEnemyUnknown_v1.1_CD32.lha,WHDLoad,CD32,UAE4ARM,,
 Virus,Virus_v1.0_0004.lha,WHDLoad,ECS,UAE4ARM,,
 Xenon,Xenon_v1.2_0399.lha,WHDLoad,ECS,UAE4ARM,,

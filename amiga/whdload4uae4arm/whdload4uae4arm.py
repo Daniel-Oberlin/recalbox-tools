@@ -117,15 +117,18 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     lines = []
 
     # CPU
-    lines.append("cpu_type=68ec020" if system_type == "cd32" else "cpu_type=68020" if system_type == "aga" else "cpu_type=68000")
-    lines.append("cpu_speed=max" if system_type == "cd32" else None)
+    lines.append("cpu_type=68020" if system_type in ["cd32", "aga"] else "cpu_type=68000")
 
     # Chipset
     lines.append("chipset=aga" if system_type in ["cd32", "aga"] else "chipset=ecs")
-    lines.append("akiko=true" if system_type == "cd32" else None)
 
     # Memory
-    lines.append("chipmem_size=2" if system_type == "cd32" else "chipmem_size=4" if system_type == "aga" else "chipmem_size=2")
+    lines.append(
+        "chipmem_size=2"
+        if system_type == "cd32" else
+        "chipmem_size=4"
+        if system_type == "aga" else
+        "chipmem_size=2")
     lines.append("fastmem_size=8")
     lines.append(
         "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32"
@@ -138,13 +141,10 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
         "kickstart_ext_rom_file=/recalbox/share/bios/kick40060.CD32.ext"
         if system_type == "cd32" else None
     )
-    lines.append("cd32nvram=true" if system_type == "cd32" else None)
 
     # Disk
     if format_type == "cd32" and cue_file:
         lines.append(f"cdimage0=/recalbox/share/roms/{os.path.basename(dest_base)}/{os.path.join(hidden_dir, cue_file)},image")
-        lines.append("boot1=cd32")
-        lines.append("cd32cd=true")
     elif format_type == "whdload":
         lines.append("boot1=dh0")
         lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0")
@@ -164,7 +164,6 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     lines = [line for line in lines if line is not None]
 
     # Write the UAE file
-    print(f"Generating UAE config: {out_path}")
     try:
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))

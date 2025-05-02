@@ -142,7 +142,7 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
 
     # Disk
     if format_type == "cd32" and cue_file:
-        lines.append(f"cdimage0={os.path.join(hidden_dir, cue_file)}")
+        lines.append(f"cdimage0=/recalbox/share/roms/{os.path.basename(dest_base)}/{os.path.join(hidden_dir, cue_file)},image")
         lines.append("boot1=cd32")
         lines.append("cd32cd=true")
     elif format_type == "whdload":

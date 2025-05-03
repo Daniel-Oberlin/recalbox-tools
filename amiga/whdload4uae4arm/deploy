@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm -rf /Volumes/share/roms/amiga*/.*
+rm -rf /Volumes/share/roms/amiga*/media
+rm /Volumes/share/roms/amiga*/*.uae
+rm /Volumes/share/roms/amiga*/gamelist.*
+
+rsync -a --no-xattrs --inplace --exclude='._*' --exclude='.DS_Store' roms/ /Volumes/share/roms/

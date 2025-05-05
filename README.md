@@ -14,6 +14,14 @@ It's fun to customize the background music.  Here are some music sources:
 - https://modarchive.org/index.php
 - https://downloads.khinsider.com/
 
+Use this to make the whole filesystem writeable:
+
+```bash
+mount -o remount,rw
+```
+
+Needed to change password and edit files that are read-only otherwise.
+
 ## PINN
 
 I needed to make a small partition on my 1TB SD card in order to accomodate the initial PINN os installation.  It was not simple to do this on the Mac because many of the partition command line options would force the partition to fill up the whole 1TB.  **TODO:** document this better.
@@ -64,26 +72,31 @@ There are several cores that you can use to run MAME.  I was tempted to use the 
 
 Get the ROMS, samples, and artwork from a MAME2003 collection and they should just work.
 
-Artwork placement...
+**TODO:** Talk about placement of art files and sound samples wihtin the recalbox filesystem.
 
 ## Amiga
 
 Strangely, the Amiga kernal ROMs are placed at the root of the /roms directory, not in /roms/amiga600 or in /roms/amiga1200 where I would expect them.  Also, different emulators expect the same ROMs to have different names, so they end up being duplicated.  The Recalbox BIOS checker checks for the names that are expected for uae4arm.  
 
+**aue4arm**
+
+
+
+ROM names and locations for Amiberry and uae4arm
+
 **Amiberry**
 
 Amiberry has a really cool feature where it can accept WHDLoad games directly in lha archive format.  When you select a game at runtime, it drops the lha archive into a special Workbench environment in the filesystem.  When Workbench runs, it uses lha to unpack the archive into a temporary directory and then launches it with WHDLoad.
 
-Unfortunately, I 
+Unfortunately, I have not yet been able to get Amiberry to run any games.  Some things on the web suggest that recent Amiberry builds have not been included in Recalbox and that maybe it is not maintained.  Even so, I would like to get Amiberry to work so as to have another emulator option available.
 
-Roms are expected as:
-/roms/...
+Amiberry looks for Kickstart ROMs in the bios directory named like "kick13.rom", "kick31.rom", which is different from the convention used by uae4arm.
 
-**aue4arm**
+**PUAE**
 
-  - Use this: "mount -o remount,rw /" to make the whole filesystem writeable.
+PUAE seems to run a lot of standard Amiga games rather slowly, for example, Stunt Car Racer is much choppier - even running on an Amiga 600.
 
-ROM names and locations for Amiberry and uae4arm
+That said, it is the only emulator core that I have been able to use to run CD32 games, and those games seem to run very well.  The only problems I've seen with CD32 games is that the CD music plays choppy.  But music during gameplay is fine, and gameplay is smooth on the two games that I have tested.
 
 **Amiga TODO:**
   - **Amiberry:** Get Amiberry running on Raspberry Pi OS to see if it is worth more time getting it to work on Recalbox

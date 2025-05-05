@@ -183,9 +183,15 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
 
     # Apply overrides from uae_config_map
     if uae_config_map:
-        for i, (key, value) in enumerate(default_config):
-            if key in uae_config_map:
-                default_config[i] = (key, uae_config_map[key])
+        # Create a dictionary from default_config for easier updates
+        config_dict = {key: value for key, value in default_config}
+
+        # Update existing parameters and add new ones
+        for key, value in uae_config_map.items():
+            config_dict[key] = value
+
+        # Convert the updated dictionary back to a list to preserve order
+        default_config = list(config_dict.items())
 
     # Generate the lines for the UAE file
     for key, value in default_config:
@@ -259,7 +265,14 @@ def process_database(dir_to_archive_map, game_override_map):
                 if effective_kick_name and is_valid_kick_name(effective_kick_name):
                     copy_kickstart_file(effective_kick_name, dest_dir)
 
-            generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, uae_config_map=uae_config)
+            generate_uae_file(
+                uae_base_name,
+                dest_base,
+                hidden_dir,
+                system_type,
+                format_type,
+                uae_config_map=uae_config
+            )
             processed_dirs.add(expand_dir_name)  # Mark directory as processed
 
     # Check for unprocessed directories
@@ -311,7 +324,15 @@ def process_single_adf(adf_path, game_override_map):
     uae_base_name = game_name_override if game_name_override else base_name
 
     # Generate the .uae file
-    generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", [os.path.basename(adf_path)])
+    generate_uae_file(
+        uae_base_name,
+        dest_base,
+        hidden_dir,
+        system_type,
+        "adf",
+        adf_files=[os.path.basename(adf_path)],
+        uae_config_map=game_info.get("uae_config", {})
+    )
 
 
 def process_adf_directory(adf_dir, game_override_map):
@@ -345,7 +366,7 @@ def process_adf_directory(adf_dir, game_override_map):
     uae_base_name = game_name_override if game_name_override else base_name
 
     # Generate the .uae file
-    generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", adf_files)
+    generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, "adf", adf_files, uae_config_map=game_info.get("uae_config", {}))
 
 def process_iso_files(game_override_map):
     """
@@ -391,7 +412,15 @@ def process_iso_files(game_override_map):
         uae_base_name = game_name_override if game_name_override else base_name
 
         # Generate the .uae file
-        generate_uae_file(uae_base_name, CD32_DIR, hidden_dir, "cd32", "cd32", cue_file=cue_file)
+        generate_uae_file(
+            uae_base_name,
+            CD32_DIR,
+            hidden_dir,
+            "cd32",
+            "cd32",
+            cue_file=cue_file,
+            uae_config_map=game_info.get("uae_config", {})
+        )
 
 def is_valid_kick_name(kick_name):
     """Validate the kick_name format: nnnnn.a*."""

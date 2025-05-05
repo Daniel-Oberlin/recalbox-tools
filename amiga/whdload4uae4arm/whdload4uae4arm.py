@@ -96,30 +96,30 @@ def load_game_overrides():
             for row in reader:
                 archive_name = row.get("Archive Name", "").strip()
                 game_name = row.get("Game", "").strip()
-                settings = row.get("Overrides", "").strip()
+                whd_config = row.get("WHD Config", "").strip()
 
                 # Skip if no archive name is provided
                 if not archive_name:
                     continue
 
                 # Skip if no game name or settings are provided
-                if not game_name and not settings:
+                if not game_name and not whd_config:
                     continue
 
                 # Parse overrides into a dictionary
-                uae_override_map = {}
-                if settings:
-                    for pair in settings.replace(";", " ").split():
+                whd_config_map = {}
+                if whd_config:
+                    for pair in whd_config.replace(";", " ").split():
                         if "=" in pair:
                             key, value = pair.split("=", 1)
-                            uae_override_map[key.strip()] = value.strip()
+                            whd_config_map[key.strip()] = value.strip()
 
                 # Only add to the map if game_name or overrides are present
                 entry = {}
                 if game_name:
                     entry["game_name_override"] = game_name
-                if uae_override_map:
-                    entry["game_settings_overrides"] = uae_override_map
+                if whd_config_map:
+                    entry["whd_config"] = whd_config_map
                 game_override_map[archive_name] = entry
 
     return game_override_map
@@ -219,7 +219,7 @@ def process_database(dir_to_archive_map, game_override_map):
             archive_name = dir_to_archive_map.get(expand_dir_name, None)
             game_info = game_override_map.get(archive_name, {})
             game_name_override = game_info.get("game_name_override")
-            game_settings_overrides = game_info.get("game_settings_overrides", {})
+            whd_config = game_info.get("whd_config", {})
 
             # Use game_name_override if set, otherwise fallback to the existing logic
             uae_base_name = game_name_override if game_name_override else expand_dir_name
@@ -249,7 +249,7 @@ def process_database(dir_to_archive_map, game_override_map):
             # Handle kick_name logic for WHDLoad games
             if format_type == "whdload":
                 # Check for kick_name or whdkick override
-                effective_kick_name = game_settings_overrides.get("whdkick", kick_name)
+                effective_kick_name = whd_config.get("kick", kick_name)
                 if effective_kick_name and is_valid_kick_name(effective_kick_name):
                     copy_kickstart_file(effective_kick_name, dest_dir)
 

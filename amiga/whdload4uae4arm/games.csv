@@ -1,40 +1,38 @@
-Game,Archive Name,Format,Hardware,Emulator,Overrides,Notes
-Another World,AnotherWorld_v2.4_0425.lha,WHDLoad,ECS,UAE4ARM,,Needs a code wheel???  And access codes???
-Armour Geddon,ArmourGeddon_v1.0_NTSC.lha,WHDLoad,ECS,UAE4ARM,,Doesn't finish loading
-Defender of the Crown,DefenderOfTheCrown_v3.1_0317.lha,WHDLoad,ECS,UAE4ARM,,"Runs, but screen is not filled, NTSC?"
-Deluxe Galaga,DeluxeGalaga_v1.2_AGA.lha,WHDLoad,AGA,UAE4ARM,whdkick=40068.a1200,"Wants a kickstart, 40068.a1200, 40068.a4000 or 40063.a600"
-Dune,Dune_v3.0_1156.lha,WHDLoad,ECS,UAE4ARM,,
-Dune 2,Dune2_v1.1_1548.lha,WHDLoad,ECS,UAE4ARM,,
-Elite,Elite_v2.0_1572.lha,WHDLoad,ECS,UAE4ARM,,
-FA18 Interceptor,FA-18 Interceptor (1988)(Electronic Arts).adf,ADF,ECS,UAE4ARM,,
-Flashback,Flashback_v3.4_1163.lha,WHDLoad,ECS,UAE4ARM,,
-Frontier,Frontier_v1.3_1960.lha,WHDLoad,ECS,UAE4ARM,,
-Gods,Gods_v2.3.1_0666.lha,WHDLoad,ECS,UAE4ARM,,
-Hard Drivin,HardDrivin_v2.04_0126.lha,WHDLoad,ECS,UAE4ARM,,
-James Pond 2,JamesPond2_v2.0_AGA_1354.lha,WHDLoad,AGA,UAE4ARM,,
-Jet,Jet_v1.0.lha,WHDLoad,ECS,UAE4ARM,,
-Lemmings,Lemmings_v1.5_Files_2089.lha,WHDLoad,ECS,UAE4ARM,,
-Oscar,Oscar_v1.8_AGA_1095.lha,WHDLoad,AGA,UAE4ARM,,
-Pinball Dreams,PinballDreams_v1.5_0377.lha,WHDLoad,ECS,UAE4ARM,,
-Pinball Fantasies,pinball_fantasies-1.adf,ADF,AGA,UAE4ARM,,
-Pinball Fantasies,Pinball Fantasies (1993)(21st Century Entertainment)[!].cue,ISO,CD32,PUAE,,Works great but choppy CD sound
-Pinball Illusions,PinballIllusions_v2.2_AGA_0710.lha,WHDLoad,AGA,UAE4ARM,,
-Risk,Risk_v1.0_1125.lha,WHDLoad,ECS,UAE4ARM,whdkick=34005.a500,
-Scorched Tanks,Scorched Tanks v0.95 (1993)(M. Welch)(beta).adf,ADF,ECS,UAE4ARM,,
-Shadow of the Beast,ShadowOfTheBeast_v2.4_1357.lha,WHDLoad,ECS,UAE4ARM,,
-Skyfox,Skyfox_v1.0_NTSC_0903.lha,WHDLoad,ECS,UAE4ARM,,
-Star Control,SCONTR_1.ADF,ADF,ECS,UAE4ARM,,
-Stardust,Stardust_v1.5_2102.lha,WHDLoad,ECS,UAE4ARM,,
-Starglider,Starglider_v1.0_0174.lha,WHDLoad,ECS,UAE4ARM,,
-Starglider 2,Starglider2_v1.2.1.lha,WHDLoad,ECS,UAE4ARM,,
-Stratego,Stratego_v1.1.1.lha,WHDLoad,ECS,UAE4ARM,,
-Stunt Car Racer,StuntCarRacer_v1.3_0222.lha,WHDLoad,ECS,UAE4ARM,,
-Stunt Car Racer TNT,StuntCarRacerTNT_v1.3.lha,WHDLoad,ECS,UAE4ARM,,
-Super Space Invaders,SuperSpaceInvaders_v1.2.lha,WHDLoad,ECS,UAE4ARM,,
-Super Stardust,SuperStardust_v1.2_AGA_0175.lha,WHDLoad,AGA,UAE4ARM,,
-Super Stardust,Super Stardust (1994)(Team 17)[!].cue,ISO,CD32,PUAE,,Works great but choppy CD sound
-Syndicate,SYND1.ADF,ADF,ECS,UAE4ARM,,
-The Chaos Engine,ChaosEngine_v1.2_AGA_1324.lha,WHDLoad,AGA,UAE4ARM,,
-UFO Enemy Unknown,UFO_1.ADF,ADF,ECS,UAE4ARM,,
-Virus,Virus_v1.0_0004.lha,WHDLoad,ECS,UAE4ARM,,
-Xenon,Xenon_v1.2_0399.lha,WHDLoad,ECS,UAE4ARM,,
+Game,Archive Name,Format,Hardware,Emulator,WHD Config,UAE Config,Rating,Notes
+Another World,anworld1.adf,ADF,ECS,UAE4ARM,,,,
+Armour Geddon,armour1.adf,ADF,ECS,UAE4ARM,,,,
+Armour Geddon II,ArmourGeddon2_Disk01.adf,ADF,ECS,UAE4ARM,,,,
+Defender of the Crown,DefenderOfTheCrown_v3.1_0317.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,,,Works; screen shifted to top
+Deluxe Galaga,DeluxeGalaga_v1.2_AGA.lha,WHDLoad,AGA,UAE4ARM,kick=40068.a1200,,,Works
+Dune,Dune_v3.0_1156.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,,,Works
+Dune 2,Dune2_v1.1_1548.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,,,Works; NTSC
+Elite,Elite_v2.0_1572.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen
+FA18 Interceptor,FA-18 Interceptor (1988)(Electronic Arts).adf,ADF,ECS,UAE4ARM,,,,Works; need to launch by navigating WB desktop
+Flashback,Flashback_v3.4_1163.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen
+Frontier,Frontier_v1.3_1960.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,cpu_type=68040;cpu_speed=max,,
+Gods,Gods_v2.3.1_0666.lha,WHDLoad,ECS,UAE4ARM,,,,
+Hard Drivin,HardDrivin_v2.04_0126.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,cpu_type=68040,,Works; figure out steering; try faster computer
+Jet,Jet_v1.0.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,,,
+Killing Cloud,"Killing Cloud, The v1.10 (1991-03-06)(Image Works)(Disk 1 of 2)[cr CPY].adf",ADF,ECS,UAE4ARM,,,,
+Lemmings,Lemmings_v1.5_Files_2089.lha,WHDLoad,ECS,UAE4ARM,,,,
+Oscar,Oscar_v1.8_AGA_1095.lha,WHDLoad,AGA,UAE4ARM,,,,
+Pinball Dreams,PinballDreams_v1.5_0377.lha,WHDLoad,ECS,UAE4ARM,,,,Works; need map kbd -> controller
+Pinball Fantasies,PinballFantasies_AGA1.adf,ADF,AGA,UAE4ARM,,,,Crashes as table is launching???
+Pinball Fantasies,Pinball Fantasies (1993)(21st Century Entertainment)[!].cue,ISO,CD32,PUAE,,,,Works great but choppy CD sound
+Pinball Illusions,PinballIllusions_v2.2_AGA_0710.lha,WHDLoad,AGA,UAE4ARM,kick=40068.a1200,,,Works; need map kbd -> controller
+Risk,Risk_v1.0_1125.lha,WHDLoad,ECS,UAE4ARM,kick=34005.a500,,,Works; screen shifted to top
+Scorched Tanks,Scorched Tanks v0.95 (1993)(M. Welch)(beta).adf,ADF,ECS,UAE4ARM,,,,
+Shadow of the Beast,ShadowOfTheBeast_v2.4_1357.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen
+Star Control,SCONTR_1.ADF,ADF,ECS,UAE4ARM,,,,Works; NTSC screen; takes a little while to load (kickstart first)
+Stardust,Stardust_v1.5_2102.lha,WHDLoad,ECS,UAE4ARM,,,,
+Starglider,Starglider_v1.0_0174.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen
+Starglider 2,Starglider2_v1.2.1.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen
+Stratego,Stratego_v1.1.1.lha,WHDLoad,ECS,UAE4ARM,,,,
+Stunt Car Racer,StuntCarRacer_v1.3_0222.lha,WHDLoad,ECS,UAE4ARM,,cpu_type=68040,,
+Stunt Car Racer TNT,StuntCarRacerTNT_v1.3.lha,WHDLoad,ECS,UAE4ARM,,cpu_type=68040,,
+Super Stardust,SuperStardust_v1.2_AGA_0175.lha,WHDLoad,AGA,UAE4ARM,,,,Works but music glitch at beginning; occasional screen flickers during play
+Super Stardust,Super Stardust (1994)(Team 17)[!].cue,ISO,CD32,PUAE,,,,Works great but choppy CD sound; try some parameters to fix
+Syndicate,SYND1.ADF,ADF,ECS,UAE4ARM,,,,Works; NTSC screen
+The Chaos Engine,ChaosEngine_v1.2_AGA_1324.lha,WHDLoad,AGA,UAE4ARM,,,,Works; NTSC screen
+UFO Enemy Unknown,UFO_1.ADF,ADF,ECS,UAE4ARM,,,,Works; NTSC?
+Virus,Virus_v1.0_0004.lha,WHDLoad,ECS,UAE4ARM,,,,Works; NTSC screen

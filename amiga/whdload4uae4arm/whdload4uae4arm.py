@@ -88,7 +88,7 @@ def run_scan_slaves():
     print(stderr.strip())
 
 def load_game_overrides():
-    """Load game names and overrides from games.csv if it exists."""
+    """Load game names, WHD Config, and UAE Config settings from games.csv if it exists."""
     game_override_map = {}
     if os.path.exists(GAMES_CSV):
         with open(GAMES_CSV, newline='', encoding='utf-8') as csvfile:
@@ -97,16 +97,17 @@ def load_game_overrides():
                 archive_name = row.get("Archive Name", "").strip()
                 game_name = row.get("Game", "").strip()
                 whd_config = row.get("WHD Config", "").strip()
+                uae_config = row.get("UAE Config", "").strip()
 
                 # Skip if no archive name is provided
                 if not archive_name:
                     continue
 
                 # Skip if no game name or settings are provided
-                if not game_name and not whd_config:
+                if not game_name and not whd_config and not uae_config:
                     continue
 
-                # Parse overrides into a dictionary
+                # Parse WHD Config into a dictionary
                 whd_config_map = {}
                 if whd_config:
                     for pair in whd_config.replace(";", " ").split():
@@ -114,12 +115,22 @@ def load_game_overrides():
                             key, value = pair.split("=", 1)
                             whd_config_map[key.strip()] = value.strip()
 
+                # Parse UAE Config into a dictionary
+                uae_config_map = {}
+                if uae_config:
+                    for pair in uae_config.replace(";", " ").split():
+                        if "=" in pair:
+                            key, value = pair.split("=", 1)
+                            uae_config_map[key.strip()] = value.strip()
+
                 # Only add to the map if game_name or overrides are present
                 entry = {}
                 if game_name:
                     entry["game_name_override"] = game_name
                 if whd_config_map:
                     entry["whd_config"] = whd_config_map
+                if uae_config_map:
+                    entry["uae_config"] = uae_config_map
                 game_override_map[archive_name] = entry
 
     return game_override_map

@@ -135,7 +135,7 @@ def load_game_overrides():
 
     return game_override_map
 
-def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None, cue_file=None):
+def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, adf_files=None, cue_file=None, uae_config_map=None):
     """
     Generate a .uae file for a game.
 
@@ -147,56 +147,50 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
         format_type (str): The format type ('adf', 'whdload', 'cd32').
         adf_files (list, optional): List of .adf files for ADF-based games.
         cue_file (str, optional): The .cue file for CD32 games.
+        uae_config_map (dict, optional): A dictionary of UAE configuration overrides.
     """
     out_path = os.path.join(dest_base, f"{uae_base_name}.uae")
     lines = []
 
-    # CPU
-    lines.append("cpu_type=68020" if system_type in ["cd32", "aga"] else "cpu_type=68000")
+    # Default UAE configuration
+    default_config = [
+        ("cpu_type", "68020" if system_type in ["cd32", "aga"] else "68000"),
+        ("chipset", "aga" if system_type in ["cd32", "aga"] else "ecs"),
+        ("chipmem_size", "2" if system_type == "cd32" else "4" if system_type == "aga" else "2"),
+        ("fastmem_size", "8"),
+        ("kickstart_rom_file", (
+            "/recalbox/share/bios/kick40060.CD32"
+            if system_type == "cd32" else
+            "/recalbox/share/bios/kick40068.A1200"
+            if system_type == "aga" else
+            "/recalbox/share/bios/kick40063.A600"
+        )),
+        ("kickstart_ext_rom_file", "/recalbox/share/bios/kick40060.CD32.ext" if system_type == "cd32" else None),
+        ("use_gui", "no" if system_type == "cd32" else None),
+    ]
 
-    # Chipset
-    lines.append("chipset=aga" if system_type in ["cd32", "aga"] else "chipset=ecs")
-
-    # Memory
-    lines.append(
-        "chipmem_size=2"
-        if system_type == "cd32" else
-        "chipmem_size=4"
-        if system_type == "aga" else
-        "chipmem_size=2")
-    lines.append("fastmem_size=8")
-    lines.append(
-        "kickstart_rom_file=/recalbox/share/bios/kick40060.CD32"
-        if system_type == "cd32" else
-        "kickstart_rom_file=/recalbox/share/bios/kick40068.A1200"
-        if system_type == "aga" else
-        "kickstart_rom_file=/recalbox/share/bios/kick40063.A600"
-    )
-    lines.append(
-        "kickstart_ext_rom_file=/recalbox/share/bios/kick40060.CD32.ext"
-        if system_type == "cd32" else None
-    )
-
-    # Disk
+    # Disk-specific configuration
     if format_type == "cd32" and cue_file:
-        lines.append(f"cdimage0=/recalbox/share/roms/{os.path.basename(dest_base)}/{os.path.join(hidden_dir, cue_file)},image")
+        default_config.append(("cdimage0", f"/recalbox/share/roms/{os.path.basename(dest_base)}/{os.path.join(hidden_dir, cue_file)},image"))
     elif format_type == "whdload":
-        lines.append("boot1=dh0")
-        lines.append(f"filesystem2=rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0")
+        default_config.append(("boot1", "dh0"))
+        default_config.append(("filesystem2", f"rw,DH0:GAME:/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/,0"))
     elif format_type == "adf" and adf_files:
-        lines.append("boot1=df0")
-        lines.append("nr_floppies=4")
-        floppy_drives = [
-            f"floppy{i}=/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/{adf_files[i]}"
-            for i in range(min(4, len(adf_files)))
-        ]
-        lines.extend(floppy_drives)
+        default_config.append(("boot1", "df0"))
+        default_config.append(("nr_floppies", "4"))
+        for i in range(min(4, len(adf_files))):
+            default_config.append((f"floppy{i}", f"/recalbox/share/roms/{os.path.basename(dest_base)}/{hidden_dir}/{adf_files[i]}"))
 
-    # Misc
-    lines.append("use_gui=no" if system_type == "cd32" else None)
+    # Apply overrides from uae_config_map
+    if uae_config_map:
+        for i, (key, value) in enumerate(default_config):
+            if key in uae_config_map:
+                default_config[i] = (key, uae_config_map[key])
 
-    # Remove all None entries
-    lines = [line for line in lines if line is not None]
+    # Generate the lines for the UAE file
+    for key, value in default_config:
+        if value is not None:
+            lines.append(f"{key}={value}")
 
     # Write the UAE file
     try:
@@ -231,6 +225,7 @@ def process_database(dir_to_archive_map, game_override_map):
             game_info = game_override_map.get(archive_name, {})
             game_name_override = game_info.get("game_name_override")
             whd_config = game_info.get("whd_config", {})
+            uae_config = game_info.get("uae_config", {})
 
             # Use game_name_override if set, otherwise fallback to the existing logic
             uae_base_name = game_name_override if game_name_override else expand_dir_name
@@ -264,7 +259,7 @@ def process_database(dir_to_archive_map, game_override_map):
                 if effective_kick_name and is_valid_kick_name(effective_kick_name):
                     copy_kickstart_file(effective_kick_name, dest_dir)
 
-            generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type)
+            generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_type, uae_config_map=uae_config)
             processed_dirs.add(expand_dir_name)  # Mark directory as processed
 
     # Check for unprocessed directories

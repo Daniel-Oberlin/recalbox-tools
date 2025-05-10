@@ -20,7 +20,7 @@ Use this to make the whole filesystem writeable:
 mount -o remount,rw
 ```
 
-Needed to change password and edit files that are read-only otherwise.
+Needed to edit some files that are read-only otherwise.  Password change requires more work, haven't figured it out yet.
 
 ## PINN
 
@@ -78,7 +78,7 @@ Get the ROMS, samples, and artwork from a MAME2003 collection and they should ju
 
 Strangely, the Amiga kernal ROMs are placed at the root of the /roms directory, not in /roms/amiga600 or in /roms/amiga1200 where I would expect them.  Also, different emulators expect the same ROMs to have different names, so they end up being duplicated.  The Recalbox BIOS checker checks for the names that are expected for uae4arm.  
 
-**aue4arm**
+**uae4arm**
 
 
 
@@ -98,9 +98,12 @@ PUAE seems to run a lot of standard Amiga games rather slowly, for example, Stun
 
 That said, it is the only emulator core that I have been able to use to run CD32 games, and those games seem to run very well.  The only problems I've seen with CD32 games is that the CD music plays choppy.  But music during gameplay is fine, and gameplay is smooth on the two games that I have tested.
 
+Playing with display settings, I found that PUAE understands: gfx_center_vertical=smart, and maybe some of the other settings that are ignored by uae4arm.
+
 **Amiga TODO:**
   - **Amiberry:** Get Amiberry running on Raspberry Pi OS to see if it is worth more time getting it to work on Recalbox
-  - **uae4arm:** Fix NTSC screen so that it is large and centered, also PAL if needed
+  - **uae4arm:** Fix screen so that it is large and centered for games that have a smaller screen and are shifted to the top
   - **uae4arm:** Fix keyboard mappings for US
+  - **PUAE:** Fix the CD32 sound from CD
 
 ## C64

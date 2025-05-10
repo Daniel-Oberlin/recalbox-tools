@@ -88,7 +88,7 @@ def run_scan_slaves():
     print(stderr.strip())
 
 def load_game_overrides():
-    """Load game names, WHD Config, UAE Config, and RetroArch Config settings from games.csv if it exists."""
+    """Load game names, WHD Config, UAE Config, RetroArch Config, and Emulator settings from games.csv if it exists."""
     game_override_map = {}
     if os.path.exists(GAMES_CSV):
         with open(GAMES_CSV, newline='', encoding='utf-8') as csvfile:
@@ -99,13 +99,14 @@ def load_game_overrides():
                 whd_config = row.get("WHD Config", "").strip()
                 uae_config = row.get("UAE Config", "").strip()
                 retroarch_config = row.get("RetroArch Config", "").strip()
+                emulator = row.get("Emulator", "").strip().lower()  # Read and convert to lowercase
 
                 # Skip if no archive name is provided
                 if not archive_name:
                     continue
 
                 # Skip if no game name or settings are provided
-                if not game_name and not whd_config and not uae_config and not retroarch_config:
+                if not game_name and not whd_config and not uae_config and not retroarch_config and not emulator:
                     continue
 
                 # Parse WHD Config into a dictionary
@@ -142,6 +143,8 @@ def load_game_overrides():
                     entry["uae_config"] = uae_config_map
                 if retroarch_config_map:
                     entry["retroarch_config"] = retroarch_config_map
+                if emulator:
+                    entry["emulator"] = emulator
                 game_override_map[archive_name] = entry
 
     return game_override_map

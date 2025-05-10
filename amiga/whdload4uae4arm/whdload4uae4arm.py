@@ -88,7 +88,7 @@ def run_scan_slaves():
     print(stderr.strip())
 
 def load_game_overrides():
-    """Load game names, WHD Config, and UAE Config settings from games.csv if it exists."""
+    """Load game names, WHD Config, UAE Config, and RetroArch Config settings from games.csv if it exists."""
     game_override_map = {}
     if os.path.exists(GAMES_CSV):
         with open(GAMES_CSV, newline='', encoding='utf-8') as csvfile:
@@ -98,13 +98,14 @@ def load_game_overrides():
                 game_name = row.get("Game", "").strip()
                 whd_config = row.get("WHD Config", "").strip()
                 uae_config = row.get("UAE Config", "").strip()
+                retroarch_config = row.get("RetroArch Config", "").strip()
 
                 # Skip if no archive name is provided
                 if not archive_name:
                     continue
 
                 # Skip if no game name or settings are provided
-                if not game_name and not whd_config and not uae_config:
+                if not game_name and not whd_config and not uae_config and not retroarch_config:
                     continue
 
                 # Parse WHD Config into a dictionary
@@ -123,6 +124,14 @@ def load_game_overrides():
                             key, value = pair.split("=", 1)
                             uae_config_map[key.strip()] = value.strip()
 
+                # Parse RetroArch Config into a dictionary
+                retroarch_config_map = {}
+                if retroarch_config:
+                    for pair in retroarch_config.replace(";", " ").split():
+                        if "=" in pair:
+                            key, value = pair.split("=", 1)
+                            retroarch_config_map[key.strip()] = value.strip()
+
                 # Only add to the map if game_name or overrides are present
                 entry = {}
                 if game_name:
@@ -131,6 +140,8 @@ def load_game_overrides():
                     entry["whd_config"] = whd_config_map
                 if uae_config_map:
                     entry["uae_config"] = uae_config_map
+                if retroarch_config_map:
+                    entry["retroarch_config"] = retroarch_config_map
                 game_override_map[archive_name] = entry
 
     return game_override_map

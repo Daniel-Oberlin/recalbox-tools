@@ -12,6 +12,7 @@ ROMS_DIR = os.path.join(BASE_DIR, "roms")
 AMIGA600_DIR = os.path.join(ROMS_DIR, "amiga600")
 AMIGA1200_DIR = os.path.join(ROMS_DIR, "amiga1200")
 CD32_DIR = os.path.join(ROMS_DIR, "amigacd32")
+CONFIG_DIR = os.path.join(BASE_DIR, "config")  # New constant for the config directory
 SCAN_SCRIPT = os.path.join(BASE_DIR, "amiga68ktools", "tools", "scan_slaves.py")
 DATABASE_FILE = os.path.join(DB_DIR, "database.csv")
 GAMES_CSV = os.path.join(BASE_DIR, "games.csv")
@@ -128,10 +129,10 @@ def load_game_overrides():
                 # Parse RetroArch Config into a dictionary
                 retroarch_config_map = {}
                 if retroarch_config:
-                    for pair in retroarch_config.replace(";", " ").split():
+                    for pair in retroarch_config.split(";"):
                         if "=" in pair:
                             key, value = pair.split("=", 1)
-                            retroarch_config_map[key.strip()] = value.strip()
+                            retroarch_config_map[key.strip()] = value.strip().strip('"')  # Remove surrounding quotes
 
                 # Only add to the map if game_name or overrides are present
                 entry = {}
@@ -474,6 +475,34 @@ def copy_kickstart_file(kick_name, dest_dir):
     else:
         print(f"[WARN] RTB file not found: {source_rtb_file}")
 
+def write_retroarch_overrides(game_override_map):
+    """
+    Write RetroArch overrides for each game in the override map.
+
+    Args:
+        game_override_map (dict): The map containing game overrides.
+    """
+    print("Writing RetroArch overrides...")
+    for archive_name, game_info in game_override_map.items():
+        retroarch_config = game_info.get("retroarch_config", {})
+        emulator = game_info.get("emulator", "default_emulator")  # Default to "default_emulator" if not set
+        game_name = game_info.get("game_name_override", os.path.splitext(archive_name)[0])  # Use game name or archive name
+
+        if retroarch_config:
+            # Construct the path for the RetroArch config file
+            emulator_config_dir = os.path.join(CONFIG_DIR, emulator)
+            os.makedirs(emulator_config_dir, exist_ok=True)
+            config_file_path = os.path.join(emulator_config_dir, f"{game_name}.cfg")
+
+            # Write the RetroArch overrides to the file
+            try:
+                with open(config_file_path, "w", encoding="utf-8") as config_file:
+                    for key, value in retroarch_config.items():
+                        # Ensure the format is key = "value"
+                        config_file.write(f'{key} = "{value}"\n')
+            except IOError as e:
+                print(f"[ERROR] Failed to write RetroArch config {config_file_path}: {e}")
+
 # --- Main Execution ---
 print("Starting WHDLoad preparation script...")
 
@@ -481,6 +510,7 @@ print("Clearing previous output directories...")
 clear_dir(DB_DIR)
 clear_dir(EXPAND_DIR)
 clear_dir(ROMS_DIR)
+clear_dir(CONFIG_DIR)  # Clear the config directory
 os.makedirs(DB_DIR, exist_ok=True)
 os.makedirs(AMIGA600_DIR, exist_ok=True)
 os.makedirs(AMIGA1200_DIR, exist_ok=True)
@@ -492,6 +522,9 @@ game_override_map = load_game_overrides()
 run_scan_slaves()
 process_database(dir_to_archive_map, game_override_map)
 process_adf_files(game_override_map)
-process_iso_files(game_override_map)  # Add this step to process ISO files
+process_iso_files(game_override_map)
+
+# Write RetroArch overrides
+write_retroarch_overrides(game_override_map)
 
 print("Script finished.")

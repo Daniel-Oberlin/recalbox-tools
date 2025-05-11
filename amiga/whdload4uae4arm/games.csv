@@ -34,6 +34,6 @@ Super Stardust,SuperStardust_v1.2_AGA_0175.lha,WHD,AGA,UAE4ARM,,,,Works but musi
 Super Stardust,Super Stardust (1994)(Team 17)[!].cue,ISO,CD32,PUAE,,,,Works great but choppy CD sound; try some parameters to fix,
 Syndicate,Syndicate_v2.6_0739.lha,WHD,ECS,UAE4ARM,kick=34005.a500,,"aspect_ratio_index=""23""; custom_viewport_height=""1404""; custom_viewport_width=""1872""; custom_viewport_x=""24""",Works; screen shifted to top,
 The Chaos Engine,ChaosEngine_v1.2_AGA_1324.lha,WHD,AGA,UAE4ARM,,,"aspect_ratio_index=""23""; custom_viewport_height=""1404""; custom_viewport_width=""1872""; custom_viewport_x=""24""",Works; screen shifted to top,
-The Sentinal,,,,,,,,,
+The Sentinal,Sentinel_v1.01_3025.lha,WHD,,UAE4ARM,,,,New,
 UFO Enemy Unknown,UFOEnemyUnknown_v1.1_AGA_0157.lha,WHD,AGA,UAE4ARM,kick=40068.a1200,,,CD32 for WHD,
 Virus,Virus_v1.0_0004.lha,WHD,ECS,UAE4ARM,,,"aspect_ratio_index=""23""; custom_viewport_height=""1404""; custom_viewport_width=""1872""; custom_viewport_x=""24""",Works; screen shifted to top,

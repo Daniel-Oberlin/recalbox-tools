@@ -1,9 +1,92 @@
 #!/bin/bash
 
-rm -rf /Volumes/share/roms/amiga*/.*
-rm -rf /Volumes/share/roms/amiga*/media
-rm /Volumes/share/roms/amiga*/*.uae
-rm /Volumes/share/roms/amiga*/gamelist.*
+# Function to display usage
+usage() {
+  echo "Usage: $0 [all|uae|config]"
+  echo "  all    - Deploy ROMs, UAE files, and config files"
+  echo "  uae    - Deploy only UAE files"
+  echo "  config - Deploy only config files"
+  exit 1
+}
 
-rsync -a --no-owner --no-group --exclude='._*' --exclude='.DS_Store' \
-  ./roms/ root@recalbox.local:/recalbox/share/roms/
+# Check for arguments
+if [ $# -ne 1 ]; then
+  usage
+fi
+
+# Parse the argument
+DEPLOY_OPTION=$1
+
+# Base paths
+CONFIG_SOURCE_DIR="./config"
+CONFIG_TARGET_BASE="/recalbox/share/system/.config/retroarch/config"
+
+# Deploy ROMs and UAE files
+deploy_roms_and_uae() {
+  echo "Deploying ROMs and UAE files..."
+
+  # Clear ROMs directory on Recalbox
+  rm -rf /Volumes/share/roms/amiga*/.*
+  rm -rf /Volumes/share/roms/amiga*/media
+  rm /Volumes/share/roms/amiga*/*.uae
+  rm /Volumes/share/roms/amiga*/gamelist.*
+
+  # Sync ROMs to Recalbox
+  rsync -a --no-owner --no-group --exclude='._*' --exclude='.DS_Store' \
+    ./roms/ root@recalbox.local:/recalbox/share/roms/
+}
+
+# Deploy only UAE files
+deploy_uae() {
+  echo "Deploying UAE files..."
+
+  # Clear only UAE files in the ROMs directory
+  rm /Volumes/share/roms/amiga*/*.uae
+
+  # Sync only UAE files to Recalbox
+  rsync -a --no-owner --no-group --include='*.uae' --exclude='*' \
+    ./roms/amiga*/ root@recalbox.local:/recalbox/share/roms/
+}
+
+# Deploy config files
+deploy_config() {
+  echo "Deploying config files..."
+
+  # Process each subdirectory in the config source directory
+  for source_subdir in "$CONFIG_SOURCE_DIR"/*; do
+    if [ -d "$source_subdir" ]; then
+      # Extract the subdirectory name (e.g., "uae4arm")
+      subdir_name=$(basename "$source_subdir")
+
+      # Define the target directory on Recalbox
+      target_subdir="$CONFIG_TARGET_BASE/$subdir_name"
+
+      # Create the target directory on Recalbox if it doesn't exist
+      ssh root@recalbox.local "mkdir -p '$target_subdir'"
+
+      # Remove all *.cfg files in the target directory
+      ssh root@recalbox.local "rm -f '$target_subdir'/*.cfg"
+
+      # Copy *.cfg files from the source subdirectory to the target directory
+      rsync -a --no-owner --no-group --exclude='._*' --exclude='.DS_Store' \
+        "$source_subdir/"*.cfg root@recalbox.local:"$target_subdir/"
+    fi
+  done
+}
+
+# Execute based on the argument
+case $DEPLOY_OPTION in
+  all)
+    deploy_roms_and_uae
+    deploy_config
+    ;;
+  uae)
+    deploy_uae
+    ;;
+  config)
+    deploy_config
+    ;;
+  *)
+    usage
+    ;;
+esac

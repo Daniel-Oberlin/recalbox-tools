@@ -99,6 +99,7 @@ def load_game_overrides():
                 game_name = row.get("Game", "").strip()
                 whd_config = row.get("WHD Config", "").strip()
                 uae_config = row.get("UAE Config", "").strip()
+                p2k_config = row.get("P2K Config", "").strip()
                 retroarch_config = row.get("RetroArch Config", "").strip()
                 emulator = row.get("Emulator", "").strip().lower()  # Read and convert to lowercase
 
@@ -134,6 +135,13 @@ def load_game_overrides():
                             key, value = pair.split("=", 1)
                             retroarch_config_map[key.strip()] = value.strip().strip('"')  # Remove surrounding quotes
 
+                p2k_config_map = {}
+                if p2k_config:
+                    for pair in p2k_config.replace(";", " ").split():
+                        if "=" in pair:
+                            key, value = pair.split("=", 1)
+                            p2k_config_map[key.strip()] = value.strip()
+
                 # Only add to the map if game_name or overrides are present
                 entry = {}
                 if game_name:
@@ -144,6 +152,8 @@ def load_game_overrides():
                     entry["uae_config"] = uae_config_map
                 if retroarch_config_map:
                     entry["retroarch_config"] = retroarch_config_map
+                if p2k_config_map:
+                    entry["p2k_config"] = p2k_config_map
                 if emulator:
                     entry["emulator"] = emulator
                 game_override_map[archive_name] = entry
@@ -221,6 +231,25 @@ def generate_uae_file(uae_base_name, dest_base, hidden_dir, system_type, format_
     except IOError as e:
         print(f"[ERROR] Failed to write UAE file {out_path}: {e}")
 
+def generate_p2k_cfg_file(uae_base_name, dest_base, p2k_config_map):
+    """
+    Generate a .uae.p2k.cfg file for a game if p2k_config_map is provided.
+
+    Args:
+        uae_base_name (str): The base name for the .uae file.
+        dest_base (str): The base directory where the .uae.p2k.cfg file will be placed.
+        p2k_config_map (dict): A dictionary of P2K configuration overrides.
+    """
+    if not p2k_config_map:
+        return
+    out_path = os.path.join(dest_base, f"{uae_base_name}.uae.p2k.cfg")
+    try:
+        with open(out_path, "w", encoding="utf-8") as f:
+            for key, value in p2k_config_map.items():
+                f.write(f"{key}={value}\n")
+    except IOError as e:
+        print(f"[ERROR] Failed to write P2K config file {out_path}: {e}")
+
 def process_database(dir_to_archive_map, game_override_map):
     """Process the database and handle WHDLoad games with kick_name and overrides logic."""
     processed_dirs = set()  # Track directories processed from the database
@@ -247,6 +276,7 @@ def process_database(dir_to_archive_map, game_override_map):
             game_name_override = game_info.get("game_name_override")
             whd_config = game_info.get("whd_config", {})
             uae_config = game_info.get("uae_config", {})
+            p2k_config = game_info.get("p2k_config", {})
 
             # Use game_name_override if set, otherwise fallback to the existing logic
             uae_base_name = game_name_override if game_name_override else expand_dir_name
@@ -287,6 +317,11 @@ def process_database(dir_to_archive_map, game_override_map):
                 system_type,
                 format_type,
                 uae_config_map=uae_config
+            )
+            generate_p2k_cfg_file(
+                uae_base_name,
+                dest_base,
+                p2k_config
             )
             processed_dirs.add(expand_dir_name)  # Mark directory as processed
 

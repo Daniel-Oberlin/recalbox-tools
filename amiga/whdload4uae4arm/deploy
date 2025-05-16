@@ -29,6 +29,7 @@ deploy_roms_and_uae() {
   rm -rf /Volumes/share/roms/amiga*/.*
   rm -rf /Volumes/share/roms/amiga*/media
   rm /Volumes/share/roms/amiga*/*.uae
+  rm /Volumes/share/roms/amiga*/*.uae.p2k.cfg
   rm /Volumes/share/roms/amiga*/gamelist.*
 
   # Sync ROMs to Recalbox
@@ -40,11 +41,13 @@ deploy_roms_and_uae() {
 deploy_uae() {
   echo "Deploying UAE files..."
 
-  # Clear only UAE files in the ROMs directory
+  # Clear only UAE and .uae.p2k.cfg files in the ROMs directory
   rm /Volumes/share/roms/amiga*/*.uae
+  rm /Volumes/share/roms/amiga*/*.uae.p2k.cfg
 
-  # Sync only UAE files to Recalbox
-  rsync -a --no-owner --no-group --include='*.uae' --exclude='*' \
+  # Sync only UAE and .uae.p2k.cfg files to Recalbox
+  rsync -a --no-owner --no-group \
+    --include='*.uae' --include='*.uae.p2k.cfg' --exclude='*' \
     ./roms/amiga*/ root@recalbox.local:/recalbox/share/roms/
 }
 

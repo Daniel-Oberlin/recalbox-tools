@@ -45,10 +45,14 @@ deploy_uae() {
   rm /Volumes/share/roms/amiga*/*.uae
   rm /Volumes/share/roms/amiga*/*.uae.p2k.cfg
 
-  # Sync only UAE and .uae.p2k.cfg files to Recalbox
-  rsync -a --no-owner --no-group \
-    --include='*.uae' --include='*.uae.p2k.cfg' --exclude='*' \
-    ./roms/amiga*/ root@recalbox.local:/recalbox/share/roms/
+rsync -a --no-owner --no-group \
+  --include='amiga*/' \
+  --include='*/' \
+  --include='*.uae' \
+  --include='*.uae.p2k.cfg' \
+  --exclude='*' \
+  ./roms/  root@recalbox.local:/recalbox/share/roms/
+
 }
 
 # Deploy config files

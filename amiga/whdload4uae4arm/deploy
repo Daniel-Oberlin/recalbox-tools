@@ -62,10 +62,7 @@ deploy_config() {
   # Process each subdirectory in the config source directory
   for source_subdir in "$CONFIG_SOURCE_DIR"/*; do
     if [ -d "$source_subdir" ]; then
-      # Extract the subdirectory name (e.g., "uae4arm")
       subdir_name=$(basename "$source_subdir")
-
-      # Define the target directory on Recalbox
       target_subdir="$CONFIG_TARGET_BASE/$subdir_name"
 
       # Create the target directory on Recalbox if it doesn't exist
@@ -79,6 +76,12 @@ deploy_config() {
         "$source_subdir/"*.cfg root@recalbox.local:"$target_subdir/"
     fi
   done
+
+  # Also recursively copy everything from config_master to the target config directory
+  if [ -d "./config_master" ]; then
+    rsync -a --no-owner --no-group --exclude='._*' --exclude='.DS_Store' \
+      ./config_master/ root@recalbox.local:"$CONFIG_TARGET_BASE/"
+  fi
 }
 
 # Execute based on the argument

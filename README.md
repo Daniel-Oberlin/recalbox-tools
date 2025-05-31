@@ -96,14 +96,20 @@ Amiberry looks for Kickstart ROMs in the bios directory named like "kick13.rom",
 
 PUAE seems to run a lot of standard Amiga games rather slowly, for example, Stunt Car Racer is much choppier - even running on an Amiga 600.
 
-That said, it is the only emulator core that I have been able to use to run CD32 games, and those games seem to run very well.  The only problems I've seen with CD32 games is that the CD music plays choppy.  But music during gameplay is fine, and gameplay is smooth on the two games that I have tested.
-
-Playing with display settings, I found that PUAE understands: gfx_center_vertical=smart, and maybe some of the other settings that are ignored by uae4arm.
+That said, it is the only emulator core that I have been able to use to run CD32 games, and those games seem to run very well.
 
 **Amiga TODO:**
   - **Amiberry:** Get Amiberry running on Raspberry Pi OS to see if it is worth more time getting it to work on Recalbox
-  - **uae4arm:** Fix screen so that it is large and centered for games that have a smaller screen and are shifted to the top
   - **uae4arm:** Fix keyboard mappings for US
-  - **PUAE:** Fix the CD32 sound from CD
+  - **PUAE:** Fix the intro music for Super Stardust
 
 ## C64
+
+## Apple
+
+For the linapple emulator, sound on HDMI doesn't work.  Sound is available through the headphone jack only.  You don't need to change the Recalbox global sound mode, that can remain as HDMI and linapple will still output to headphone jack.  An easy solution is to plug in a headphone and make sure the volume is high, and then you get an almost authentic speaker sound for the Apple emulation.
+
+**Apple TODO:**
+ - Complete building library of games
+ - Assign controller to keyboard mappings for appropriate games
+ - Figure out how to make scaline shaders work

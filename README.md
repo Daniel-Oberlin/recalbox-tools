@@ -4,12 +4,6 @@ I've been working on getting Recalbox running on my Pi4, running as a PINN boota
 
 ## Recalbox
 
-Recalbox has a number of easy, well documented ways to work with roms and other files in the installation:
-
-- **SSH**: SSH root credentials are well known.
-- **Network Share**: Look for "RECALBOX" on your network, you can access the share directory using this
-- **Web**: There is a web interface that lets you do a lot of things
-
 It's fun to customize the background music.  Here are some music sources:
 - https://modarchive.org/index.php
 - https://downloads.khinsider.com/
@@ -20,7 +14,7 @@ Use this to make the whole filesystem writeable:
 mount -o remount,rw
 ```
 
-Needed to edit some files that are read-only otherwise.  Password change requires more work, haven't figured it out yet.
+Needed to edit the systemlist.xml config file that is read-only otherwise.  I think making the file system writable means that you add a writable overlay on top of the read-only SquashFS root filesystem.  I think you could change the password this way, but it involves updating the shadow file among other things.
 
 ## PINN
 
@@ -76,7 +70,7 @@ Get the ROMS, samples, and artwork from a MAME2003 collection and they should ju
 
 ## Amiga
 
-Strangely, the Amiga kernal ROMs are placed at the root of the /roms directory, not in /roms/amiga600 or in /roms/amiga1200 where I would expect them.  Also, different emulators expect the same ROMs to have different names, so they end up being duplicated.  The Recalbox BIOS checker checks for the names that are expected for uae4arm.  
+Strangely, the Amiga kernal ROMs are placed at the root of the /bios directory, not in /bios/amiga600 or in /bios/amiga1200 where I would expect them.  Also, different emulators expect the same ROMs to have different names, so they end up being duplicated.  The Recalbox BIOS checker checks for the names that are expected for uae4arm.  
 
 **uae4arm**
 
@@ -105,6 +99,12 @@ That said, it is the only emulator core that I have been able to use to run CD32
 
 ## C64
 
+A few games expect to be run in PAL mode.  In some cases joysticks won't work properly unless PAL mode is enabled.  For example, "The Last V8", and one of the foreign-language versions of Archon.  The English version of Archon that I currently have feels too fast (intro music and gameplay) unless it is run in PAL mode.
+
+**C64 TODO:**
+- Is it possible to load disks into multiple drives?
+- Scanline shaders?
+
 ## Apple
 
 For the linapple emulator, sound on HDMI doesn't work.  Sound is available through the headphone jack only.  You don't need to change the Recalbox global sound mode, that can remain as HDMI and linapple will still output to headphone jack.  An easy solution is to plug in a headphone and make sure the volume is high, and then you get an almost authentic speaker sound for the Apple emulation.
@@ -113,3 +113,26 @@ For the linapple emulator, sound on HDMI doesn't work.  Sound is available throu
  - Complete building library of games
  - Assign controller to keyboard mappings for appropriate games
  - Figure out how to make scaline shaders work
+
+ ## N64
+
+ In order to use hires textures, you must run the game with LIBRETRO MUPEN64PLUS_NEXT emulator.
+
+ You must change settings in "Core Options -> GlideN64":
+ 
+ - Use High-Res textures = ON
+ - Use High-Res Texture Cache Compression = ON (optional, generates compressed .htc file, I think)
+ - Use High-Res Full Alpha Channel = ON
+ - Use enhance Hi_Res Storage = ON (optional, uses uncompressed .hts file if you have it, I think)
+
+ 
+
+ Place the textures in, for example:
+/recalbox/share/bios/Mupen64plus/hires_texture/SUPER MARIO 64/
+
+And the .hts texture cache in, for example:
+/recalbox/share/bios/Mupen64plus/cache/SUPER MARIO 64_HIRESTEXTURES.hts
+
+If the .htc file is generated, it will be placed in the same folder, and it can take a significant time to load the first time.
+
+For my XBox One controller, I found that I needed to add content to InputAutoCf.ini for "[Xbox One S Controller]", see the example file.

@@ -25,6 +25,8 @@ amiga/whdload4uae4arm/expand/
 amiga/whdload4uae4arm/iso/
 amiga/whdload4uae4arm/lha/
 amiga/whdload4uae4arm/roms/
+c64/roms/
+gameboy/roms/
 
 # Ignore everything in system_base
 amiga/whdload4uae4arm/system_base/*

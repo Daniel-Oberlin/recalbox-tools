@@ -110,29 +110,32 @@ A few games expect to be run in PAL mode.  In some cases joysticks won't work pr
 For the linapple emulator, sound on HDMI doesn't work.  Sound is available through the headphone jack only.  You don't need to change the Recalbox global sound mode, that can remain as HDMI and linapple will still output to headphone jack.  An easy solution is to plug in a headphone and make sure the volume is high, and then you get an almost authentic speaker sound for the Apple emulation.
 
 **Apple TODO:**
- - Complete building library of games
+ - Complete setting up my library of games
  - Assign controller to keyboard mappings for appropriate games
- - Figure out how to make scaline shaders work
+ - Figure out how to make scaline shaders work (I don't think you can with this emulator?)
 
  ## N64
 
- In order to use hires textures, you must run the game with LIBRETRO MUPEN64PLUS_NEXT emulator.
+The choice of emulator makes a difference in how the game performs and the visual experience you get.
 
- You must change settings in "Core Options -> GlideN64":
- 
- - Use High-Res textures = ON
- - Use High-Res Texture Cache Compression = ON (optional, generates compressed .htc file, I think)
- - Use High-Res Full Alpha Channel = ON
- - Use enhance Hi_Res Storage = ON (optional, uses uncompressed .hts file if you have it, I think)
+Use LIBRETRO PARALLEL_N64 to get the original low-resolution (320*240) experience.  You can play games smoothly at this resolution with no glitches.
 
- 
+Use the system default, MUPEN64PLUS GLIDE64MK2 for a high resolution experience with sharp polygon edges but low resolution textures.  The game plays pretty well, but with occasional glitches.  I found that for my XBox wireless controller, I had to add content to the InputAutoCf.ini file in order to get the controllers mapped and working correctly.  See the example file that I used for this.
 
- Place the textures in, for example:
+Use the LIBRETRO MUPEN64PLUS_NEXT emulator to run with high resolution texture packs that you can add on.  The overall resolution is not as high as you get with MUPEN64PLUS GLIDE64MK2, but is possible to install the hires texture packs which make a large difference in the visuals.  Games are playable, but there are more glitches and slowdowns than with MUPEN64PLUS GLIDE64MK2.
+
+**Using Hires Textures**
+
+Place the textures in, for example:
 /recalbox/share/bios/Mupen64plus/hires_texture/SUPER MARIO 64/
 
 And the .hts texture cache in, for example:
 /recalbox/share/bios/Mupen64plus/cache/SUPER MARIO 64_HIRESTEXTURES.hts
 
-If the .htc file is generated, it will be placed in the same folder, and it can take a significant time to load the first time.
+You must change settings in "Core Options -> GlideN64":
+ - Use High-Res textures = ON
+ - Use High-Res Texture Cache Compression = ON (optional, generates compressed .htc file, it seems)
+ - Use High-Res Full Alpha Channel = ON
+ - Use enhance Hi_Res Storage = ON (optional, uses an uncompressed .hts file if you install one, I think)
 
-For my XBox One controller, I found that I needed to add content to InputAutoCf.ini for "[Xbox One S Controller]", see the example file.
+If the .htc file is generated, it will be placed in the same folder where you would put .hts, and it can take a significant time to load the first time.

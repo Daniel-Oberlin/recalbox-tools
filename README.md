@@ -126,6 +126,8 @@ Use the LIBRETRO MUPEN64PLUS_NEXT emulator to run with high resolution texture p
 
 **Using Hires Textures**
 
+For this emulator, these texture packs must use the Glide64 format, not the older Rice format.
+
 Place the textures in, for example:
 /recalbox/share/bios/Mupen64plus/hires_texture/SUPER MARIO 64/
 

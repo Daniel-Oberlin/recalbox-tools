@@ -109,10 +109,13 @@ A few games expect to be run in PAL mode.  In some cases joysticks won't work pr
 
 For the linapple emulator, sound on HDMI doesn't work.  Sound is available through the headphone jack only.  You don't need to change the Recalbox global sound mode, that can remain as HDMI and linapple will still output to headphone jack.  An easy solution is to plug in a headphone and make sure the volume is high, and then you get an almost authentic speaker sound for the Apple emulation.
 
+Also linapple does not support the woz disk format.
+
 **Apple TODO:**
+
  - Complete setting up my library of games
- - Assign controller to keyboard mappings for appropriate games
- - Figure out how to make scaline shaders work (I don't think you can with this emulator?)
+ - Assign controller to keyboard mappings for appropriate games (doesn't seen possible)
+ - Figure out how to make scaline shaders work (doesn't seem possible)
 
  ## N64
 
